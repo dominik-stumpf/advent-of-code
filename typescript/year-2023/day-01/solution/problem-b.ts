@@ -75,46 +75,9 @@ function calcCalibrationFromRight(calibrationLine: string): string {
 }
 
 function calcCalibrationValue(calibrationLine: string): number {
-  // let result = '';
-  // const tokenKeySetPair = getTokenKeySetPair();
-
-  // lineLoop: for (let i = 0; i < calibrationLine.length; i += 1) {
-  //
-  //   for (let j = 0; j < tokenKeySetPair.length; j += 1) {
-  //     const map = tokenKeySetPair[j];
-  //     if (calibrationLine[i] === map.key[map.set.length]) {
-  //       map.set += calibrationLine[i];
-  //       if (map.set === map.key) {
-  //         result += tokenMap[map.key];
-  //         break lineLoop;
-  //       }
-  //     }
-  //   }
-  // }
-  //
-  // for (const keySet of tokenKeySetPair) {
-  //   keySet.set = '';
-  // }
-  //
-  // lineLoop: for (let i = calibrationLine.length - 1; i >= 0; i -= 1) {
-  //
-  //   for (let j = 0; j < tokenKeySetPair.length; j += 1) {
-  //     const map = tokenKeySetPair[j];
-  //     if (calibrationLine[i] === map.key[map.key.length - 1 - map.set.length]) {
-  //       map.set = calibrationLine[i] + map.set;
-  //       if (map.set === map.key) {
-  //         result += tokenMap[map.key];
-  //         break lineLoop;
-  //       }
-  //     }
-  //   }
-  // }
-
-  // return Number(result);
-
   return Number(
     calcCalibrationFromLeft(calibrationLine) +
-      calcCalibrationFromRight(calibrationLine),
+    calcCalibrationFromRight(calibrationLine),
   );
 }
 
