@@ -1,0 +1,14 @@
+{
+  "name": "advent-of-code-year-2023",
+  "type": "module",
+  "scripts": {
+    "apply-ci": "biome check --apply-unsafe . && biome format --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.4.0",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
