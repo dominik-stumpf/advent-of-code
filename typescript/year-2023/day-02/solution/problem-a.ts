@@ -17,7 +17,7 @@ const initialSetOfCubes: GameRecord['setOfCubes'][number] = {
 };
 
 function parseGameRecord(recordLine: string): GameRecord {
-  const matchResult = recordLine.match(/Game (\d*): (.*)/);
+  const matchResult = recordLine.match(/Game (\d+): (.+)/);
 
   if (matchResult === null || matchResult.length !== 3) {
     throw new Error(`invalid game record line found: ${recordLine}`);
