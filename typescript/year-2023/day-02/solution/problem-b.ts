@@ -6,7 +6,6 @@ async function main() {
   const inputLines = input.split('\n');
 
   inputLines.pop(); // omit last trailing empty line
-
 }
 
 main();
