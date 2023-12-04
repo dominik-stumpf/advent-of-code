@@ -68,10 +68,10 @@ function getAdjacentPartNumberIndices(
       const overflowRightAmount = Math.max(
         0,
         partNumber.startIndex +
-          partNumber.value.length +
-          adjacentRange -
-          rowIndex * (lineLength + 1) -
-          lineLength,
+        partNumber.value.length +
+        adjacentRange -
+        rowIndex * (lineLength + 1) -
+        lineLength,
       );
 
       const row = Array.from(
@@ -120,29 +120,6 @@ function _visualizeAdjacentIndices(
 
   console.log(splittedSchematic.join(''));
 }
-
-// function sumValidPartNumbers(
-//   indexedPartNumbers: IndexedPartNumber[],
-//   engineSchematic: string,
-// ): number {
-//   let sum = 0;
-//
-//   for (const indexedPartNumber of indexedPartNumbers) {
-//     for (const adjacentIndices of indexedPartNumber.adjacentIndices) {
-//       for (const adjacentIndex of adjacentIndices) {
-//         if (
-//           engineSchematic[adjacentIndex] !== '.' &&
-//           !validDigits.includes(engineSchematic[adjacentIndex])
-//         ) {
-//           sum += Number(indexedPartNumber.value);
-//           break;
-//         }
-//       }
-//     }
-//   }
-//
-//   return sum;
-// }
 
 function getPartNumberProducts(
   indexedPartNumbers: IndexedPartNumber[],
