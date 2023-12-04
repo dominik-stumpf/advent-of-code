@@ -37,7 +37,6 @@ function getAdjacentPartNumberIndices(
   engineSchematic: string,
 ): IndexedPartNumber[] {
   const lineLength = engineSchematic.indexOf('\n');
-  // console.log(lineLength);
   const adjacentRange = 1;
   const indexedPartNumbers: IndexedPartNumber[] = partNumbers.map(
     (current) => ({ ...current, adjacentIndices: [] }),
@@ -68,10 +67,10 @@ function getAdjacentPartNumberIndices(
       const overflowRightAmount = Math.max(
         0,
         partNumber.startIndex +
-          partNumber.value.length +
-          adjacentRange -
-          rowIndex * (lineLength + 1) -
-          lineLength,
+        partNumber.value.length +
+        adjacentRange -
+        rowIndex * (lineLength + 1) -
+        lineLength,
       );
 
       const row = Array.from(
