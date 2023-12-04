@@ -68,10 +68,10 @@ function getAdjacentPartNumberIndices(
       const overflowRightAmount = Math.max(
         0,
         partNumber.startIndex +
-          partNumber.value.length +
-          adjacentRange -
-          rowIndex * (lineLength + 1) -
-          lineLength,
+        partNumber.value.length +
+        adjacentRange -
+        rowIndex * (lineLength + 1) -
+        lineLength,
       );
 
       const row = Array.from(
@@ -170,12 +170,7 @@ function getPartNumberProducts(
       }
 
       if (collectedPartNumbers.length === 2) {
-        partNumberProducts.push(
-          collectedPartNumbers.reduce(
-            (accumulator, partNumber) => accumulator * Number(partNumber.value),
-            1,
-          ),
-        );
+        partNumberProducts.push(collectedPartNumbers.reduce((accumulator, partNumber) => accumulator * Number(partNumber.value), 1));
       }
     }
   }
@@ -184,17 +179,14 @@ function getPartNumberProducts(
 }
 
 async function main() {
-  const input = await inputFile.text();
+  const input = await _exampleFile.text();
 
   const partNumbers = getPartNumbers(input);
   const indexedPartNumbers = getAdjacentPartNumberIndices(partNumbers, input);
   const partNumberProducts = getPartNumberProducts(indexedPartNumbers, input);
   console.log('partNumberProducts', partNumberProducts);
 
-  const sum = partNumberProducts.reduce(
-    (accumulator, product) => accumulator + product,
-    0,
-  );
+  const sum = partNumberProducts.reduce((accumulator, product) => accumulator + product, 0);
   console.log('sum:', sum);
 }
 
