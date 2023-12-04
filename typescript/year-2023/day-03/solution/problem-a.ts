@@ -56,12 +56,12 @@ function getAdjacentPartNumberIndices(
         rowOverflowIndex < 0 || rowOverflowIndex > engineSchematic.length;
 
       if (didOverflowHorizontally) {
-        console.log('this row is overflowing');
+        // console.log('this row is overflowing');
         continue;
       }
 
       const rowIndex = Math.floor(partNumber.startIndex / (lineLength + 1));
-      const _overflowLeftAmount = Math.min(
+      const overflowLeftAmount = Math.min(
         0,
         partNumber.startIndex - adjacentRange - rowIndex * (lineLength + 1),
       );
@@ -76,22 +76,29 @@ function getAdjacentPartNumberIndices(
       );
 
       const row = Array.from(
-        { length: partNumber.value.length + adjacentRange * 2 },
+        {
+          length:
+            partNumber.value.length +
+            adjacentRange * 2 -
+            overflowRightAmount +
+            overflowLeftAmount,
+        },
         (_, j) => {
           return (
             partNumber.startIndex +
             j -
             adjacentRange +
-            (i - adjacentRange) * (lineLength + adjacentRange)
+            (i - adjacentRange) * (lineLength + adjacentRange) -
+            overflowLeftAmount
           );
         },
       );
 
-      console.log(row, partNumber.value, overflowRightAmount);
+      // console.log(row, partNumber.value);
       adjacentIndices.push(row);
     }
 
-    console.log();
+    // console.log();
 
     partNumber.adjacentIndices = adjacentIndices;
   }
