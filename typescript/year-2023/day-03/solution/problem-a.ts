@@ -1,5 +1,5 @@
 const _exampleFile = Bun.file('input/example-a');
-const _inputFile = Bun.file('input/input-a');
+const inputFile = Bun.file('input/input-a');
 
 const validDigits = '0123456789';
 
@@ -56,7 +56,6 @@ function getAdjacentPartNumberIndices(
         rowOverflowIndex < 0 || rowOverflowIndex > engineSchematic.length;
 
       if (didOverflowHorizontally) {
-        // console.log('this row is overflowing');
         continue;
       }
 
@@ -78,13 +77,16 @@ function getAdjacentPartNumberIndices(
       const row = Array.from(
         {
           length:
-            partNumber.value.length +
+            (i === adjacentRange ? 0 : partNumber.value.length) +
             adjacentRange * 2 -
             overflowRightAmount +
             overflowLeftAmount,
         },
         (_, j) => {
           return (
+            (i === adjacentRange && j >= adjacentRange + overflowLeftAmount
+              ? partNumber.value.length
+              : 0) +
             partNumber.startIndex +
             j -
             adjacentRange +
@@ -94,11 +96,8 @@ function getAdjacentPartNumberIndices(
         },
       );
 
-      // console.log(row, partNumber.value);
       adjacentIndices.push(row);
     }
-
-    // console.log();
 
     partNumber.adjacentIndices = adjacentIndices;
   }
@@ -122,29 +121,37 @@ function _visualizeAdjacentIndices(
   console.log(splittedSchematic.join(''));
 }
 
-async function main() {
-  const _input = await _exampleFile.text();
-  const input = `467..114..
-...*......
-..35..633.
-.......123
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598..`;
+function sumValidPartNumbers(
+  indexedPartNumbers: IndexedPartNumber[],
+  engineSchematic: string,
+): number {
+  let sum = 0;
 
-  console.log(input);
+  for (const indexedPartNumber of indexedPartNumbers) {
+    for (const adjacentIndices of indexedPartNumber.adjacentIndices) {
+      for (const adjacentIndex of adjacentIndices) {
+        if (
+          engineSchematic[adjacentIndex] !== '.' &&
+          !validDigits.includes(engineSchematic[adjacentIndex])
+        ) {
+          sum += Number(indexedPartNumber.value);
+          break;
+        }
+      }
+    }
+  }
+
+  return sum;
+}
+
+async function main() {
+  const input = await inputFile.text();
 
   const partNumbers = getPartNumbers(input);
-  // console.log(partNumbers)
-
   const indexedPartNumbers = getAdjacentPartNumberIndices(partNumbers, input);
-  // console.log(indexedPartNumbers);
+  const sum = sumValidPartNumbers(indexedPartNumbers, input);
 
-  _visualizeAdjacentIndices(indexedPartNumbers, input);
+  console.log('sum:', sum);
 }
 
 main();
