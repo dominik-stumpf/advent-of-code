@@ -2,8 +2,8 @@ const _exampleFile = Bun.file('input/example-a');
 const inputFile = Bun.file('input/input-a');
 
 interface ScratchCard {
-  winningNumbers: number[];
-  receivedNumbers: number[];
+  winningNumbers: Set<number>;
+  receivedNumbers: Set<number>;
 }
 
 interface EvaluatedScratchCard {
@@ -16,10 +16,10 @@ function parseCard(cardLine: string): ScratchCard {
     .slice(cardLine.indexOf(': ') + 1)
     .split('|')
     .map((numbers) => {
-      return numbers
+      return new Set(numbers
         .trim()
         .split(/ +/)
-        .map((number) => Number(number));
+        .map((number) => Number(number)));
     });
 
   return { winningNumbers, receivedNumbers };
@@ -32,7 +32,7 @@ function countScratchCardMatch({
   let matchCount = 0;
 
   for (const winningNumber of winningNumbers) {
-    if (receivedNumbers.includes(winningNumber)) {
+    if (receivedNumbers.has(winningNumber)) {
       matchCount += 1;
     }
   }
