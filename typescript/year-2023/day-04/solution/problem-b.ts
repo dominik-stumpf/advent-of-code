@@ -40,7 +40,7 @@ function countScratchCardMatch({
   return matchCount;
 }
 
-function evaluateScratchCard(
+function evaluateScratchCards(
   scratchCards: ScratchCard[],
 ): EvaluatedScratchCard[] {
   const evaluatedCards: EvaluatedScratchCard[] = scratchCards.map(
@@ -69,7 +69,7 @@ async function main() {
   inputLines.pop(); // omit last trailing empty line
 
   const parsedCards = inputLines.map((line) => parseCard(line));
-  const evaluatedCards = evaluateScratchCard(parsedCards);
+  const evaluatedCards = evaluateScratchCards(parsedCards);
   const sum = evaluatedCards.reduce(
     (accumulator, card) => accumulator + card.instance,
     0,
