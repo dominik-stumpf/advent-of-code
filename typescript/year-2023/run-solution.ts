@@ -1,4 +1,6 @@
 import { program } from 'commander';
+import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 function setupProgram() {
   program
@@ -14,16 +16,18 @@ function setupProgram() {
   return program.parse();
 }
 
-function main() {
+async function main() {
   const program = setupProgram();
 
   const options = program.opts();
   const day = options.day.padStart(2, '0');
-  const { part } = options;
+  const { part, example } = options;
   const solverPath = `@/day-${day}/solution/problem-part-${part}`;
+  const inputPath = resolve(`day-${day}`, 'input', `${example ? 'example' : 'input'}-part-${part}`)
+  const solution = await import(solverPath);
+  const input = readFileSync(inputPath, 'utf-8')
 
-  // const solution = await import(solverPath);
-  console.log(options, solverPath);
+  console.log('solver result:', solution.solveProblem(input));
 }
 
 main();
