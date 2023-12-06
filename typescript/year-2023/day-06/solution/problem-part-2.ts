@@ -2,8 +2,8 @@ export function solveProblem(input: string): number {
   const race = parseRace(input);
   let newDistanceRecordCounter = 0;
 
-  for (let i = 0; i < race.timeBudget; i += 1) {
-    const dist = calcDistanceTraveled(race.timeBudget, i);
+  for (let holdTime = 0; holdTime < race.timeBudget; holdTime += 1) {
+    const dist = calcDistanceTraveled(race.timeBudget, holdTime);
     if (dist > race.distanceTraveled) {
       newDistanceRecordCounter += 1;
     }
