@@ -11,10 +11,12 @@ function parseCard(cardLine: string): ScratchCard {
     .slice(cardLine.indexOf(': ') + 1)
     .split('|')
     .map((numbers) => {
-      return new Set(numbers
-        .trim()
-        .split(/ +/)
-        .map((number) => Number(number)));
+      return new Set(
+        numbers
+          .trim()
+          .split(/ +/)
+          .map((number) => Number(number)),
+      );
     });
 
   return { winningNumbers, receivedNumbers };

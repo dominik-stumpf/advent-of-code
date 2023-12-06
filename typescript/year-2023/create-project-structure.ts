@@ -10,9 +10,9 @@ function main() {
     mkdirSync(`day-${day}/input/`, { recursive: true, mode: 0o755 });
 
     for (let part = 1; part <= 2; part += 1) {
-      const problem = `day-${day}/solution/problem-part-${part}.ts`
-      const input = `day-${day}/input/input-part-${part}`
-      const example = `day-${day}/input/example-part-${part}`
+      const problem = `day-${day}/solution/problem-part-${part}.ts`;
+      const input = `day-${day}/input/input-part-${part}`;
+      const example = `day-${day}/input/example-part-${part}`;
 
       if (!existsSync(problem)) {
         writeFileSync(problem, solutionTemplate, {});
