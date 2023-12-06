@@ -5,7 +5,7 @@ export function solveProblem(input: string): number {
   for (const race of races) {
     let newDistanceRecordCounter = 0;
     for (let i = 0; i < race.timeBudget; i += 1) {
-      const dist = calcDistanceTraveled(race.timeBudget, i)
+      const dist = calcDistanceTraveled(race.timeBudget, i);
       if (dist > race.distanceTraveled) {
         newDistanceRecordCounter += 1;
       }

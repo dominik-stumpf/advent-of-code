@@ -13,12 +13,12 @@ function main() {
       const example = `day-${day}/input/example-part-${part}`;
 
       if (existsSync(oldInput)) {
-        const oldFile = readFileSync(oldInput, 'utf-8')
+        const oldFile = readFileSync(oldInput, 'utf-8');
         writeFileSync(input, oldFile, {});
         unlinkSync(oldInput);
       }
       if (existsSync(oldExample)) {
-        const oldFile = readFileSync(oldExample, 'utf-8')
+        const oldFile = readFileSync(oldExample, 'utf-8');
         writeFileSync(example, oldFile, {});
         unlinkSync(oldExample);
       }

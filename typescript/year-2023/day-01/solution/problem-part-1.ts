@@ -40,4 +40,3 @@ export function solveProblem(input: string): number {
 
   return sum;
 }
-

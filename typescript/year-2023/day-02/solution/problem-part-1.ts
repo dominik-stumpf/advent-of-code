@@ -44,7 +44,6 @@ function validateGameRecord(record: GameRecord): boolean {
   );
 }
 
-
 export function solveProblem(input: string): number {
   const inputLines = input.split('\n');
 

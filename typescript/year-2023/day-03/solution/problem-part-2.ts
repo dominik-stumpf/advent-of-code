@@ -64,10 +64,10 @@ function getAdjacentPartNumberIndices(
       const overflowRightAmount = Math.max(
         0,
         partNumber.startIndex +
-        partNumber.value.length +
-        adjacentRange -
-        rowIndex * (lineLength + 1) -
-        lineLength,
+          partNumber.value.length +
+          adjacentRange -
+          rowIndex * (lineLength + 1) -
+          lineLength,
       );
 
       const row = Array.from(
@@ -113,7 +113,6 @@ function _visualizeAdjacentIndices(
       }
     }
   }
-
 }
 
 // biome-ignore lint: spaghetti is my speciality
@@ -157,7 +156,6 @@ function getPartNumberProducts(
 }
 
 export function solveProblem(input: string): number {
-
   const partNumbers = getPartNumbers(input);
   const indexedPartNumbers = getAdjacentPartNumberIndices(partNumbers, input);
   const partNumberProducts = getPartNumberProducts(indexedPartNumbers, input);

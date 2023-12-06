@@ -74,7 +74,7 @@ function calcCalibrationFromRight(calibrationLine: string): string {
 function calcCalibrationValue(calibrationLine: string): number {
   return Number(
     calcCalibrationFromLeft(calibrationLine) +
-    calcCalibrationFromRight(calibrationLine),
+      calcCalibrationFromRight(calibrationLine),
   );
 }
 

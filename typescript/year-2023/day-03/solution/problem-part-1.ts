@@ -64,10 +64,10 @@ function getAdjacentPartNumberIndices(
       const overflowRightAmount = Math.max(
         0,
         partNumber.startIndex +
-        partNumber.value.length +
-        adjacentRange -
-        rowIndex * (lineLength + 1) -
-        lineLength,
+          partNumber.value.length +
+          adjacentRange -
+          rowIndex * (lineLength + 1) -
+          lineLength,
       );
 
       const row = Array.from(
