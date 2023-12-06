@@ -12,6 +12,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "commander": "^11.1.0",
     "mitata": "^0.1.6"
   }
 }
