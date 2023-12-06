@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { program } from 'commander';
+import { bench, run } from 'mitata';
 
 function setupProgram() {
   program
@@ -11,7 +12,8 @@ function setupProgram() {
       'part of the problem ranging from 1..2',
     )
     .requiredOption('-d, --day <number>', 'day of calendar ranging from 1..25')
-    .option('--example', 'run solver using example file');
+    .option('--example', 'run solver using example file')
+    .option('-b, --benchmark', 'measure performance using microbenchmark');
 
   return program.parse();
 }
@@ -21,7 +23,7 @@ async function main() {
 
   const options = program.opts();
   const day = options.day.padStart(2, '0');
-  const { part, example } = options;
+  const { part, example, benchmark } = options;
   const solverPath = `@/day-${day}/solution/problem-part-${part}`;
   const inputPath = resolve(
     `day-${day}`,
@@ -31,7 +33,14 @@ async function main() {
   const solution = await import(solverPath);
   const input = readFileSync(inputPath, 'utf-8');
 
-  console.log('solver result:', solution.solveProblem(input));
+  if (benchmark) {
+    bench(solverPath, () => solution.solveProblem(input));
+    await run({
+      percentiles: false,
+    });
+  } else {
+    console.log('solver result:', solution.solveProblem(input));
+  }
 }
 
 main();
