@@ -46,13 +46,12 @@ function mapSeed(seed: number, map: MapRange[]): number {
   return seed;
 }
 
-function mapAlmanacSeeds({ seeds, maps }: Almanac): number[] {
-  const procedures: number[] = [];
+function getSmallestProcedureResult({ seeds, maps }: Almanac): number {
+  let smallestProcedure = undefined;
 
   for (let i = 0; i < seeds.length; i += 2) {
     const seedRangeStart = seeds[i];
     const seedRange = seeds[i + 1];
-    console.log('seed processing progress', i / seeds.length);
 
     for (
       let seed = seedRangeStart;
@@ -64,20 +63,28 @@ function mapAlmanacSeeds({ seeds, maps }: Almanac): number[] {
         const newSeed = mapSeed(seedProcedure, map);
         seedProcedure = newSeed;
       }
-      procedures.push(seedProcedure);
+      if (
+        smallestProcedure === undefined ||
+        seedProcedure < smallestProcedure
+      ) {
+        smallestProcedure = seedProcedure;
+      }
     }
   }
 
-  return procedures;
+  if (smallestProcedure === undefined) {
+    throw new Error('no seed were calculated');
+  }
+
+  return smallestProcedure;
 }
 
 async function main() {
   const input = await inputFile.text();
   const almanac = parseAlmanac(input);
-  const lastProcedureResults = mapAlmanacSeeds(almanac);
-  const smallestProcedureResult = Math.min(...lastProcedureResults);
+  const smallestProcedureResult = getSmallestProcedureResult(almanac);
 
-  console.log('lowest location number:', smallestProcedureResult);
+  console.log('smallestProcedureResult:', smallestProcedureResult);
 }
 
 main();
