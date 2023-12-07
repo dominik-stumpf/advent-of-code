@@ -197,9 +197,9 @@ function rankHands(evaluatedHands: EvaluatedHand[]): RankedHand[] {
   for (const handType of handTypes) {
     const hands = evaluatedHands.filter((hand) => hand.type === handType);
     hands.sort((a, b) => {
-      for (let i = 0; i < a.labels.length; i += 1) {
-        const [labelA, labelB] = [a.labels[i], b.labels[i]].map((label) =>
-          cardLabels.indexOf(label),
+      for (let i = 0; i < a.cards.length; i += 1) {
+        const [labelA, labelB] = [a.cards[i], b.cards[i]].map((label) =>
+          cardLabels.indexOf(label as CardLabel),
         );
         if (labelA === labelB) {
           continue;
