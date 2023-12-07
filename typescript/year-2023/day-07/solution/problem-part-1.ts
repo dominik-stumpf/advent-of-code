@@ -61,30 +61,25 @@ type HandTypeMapCallback = (
 
 interface HandStrength {
   type: HandType;
-  labels: CardLabel[];
 }
 
 interface EvaluatedHand extends HandStrength, Hand {}
 
 const handTypeMap: Record<HandType, HandTypeMapCallback> = {
   fiveOfAKind: (_, labelCount) => {
-    for (const [label, count] of Object.entries(labelCount)) {
+    for (const [, count] of Object.entries(labelCount)) {
       if (count === 5) {
-        return { type: 'fiveOfAKind', labels: [label as CardLabel] };
+        return { type: 'fiveOfAKind' };
       }
     }
 
     return undefined;
   },
-  fourOfAKind: (cards, labelCount) => {
-    const cardLabels = new Set(cards.split(''));
-    for (const [label, count] of Object.entries(labelCount)) {
+  fourOfAKind: (_, labelCount) => {
+    for (const [, count] of Object.entries(labelCount)) {
       if (count === 4) {
-        cardLabels.delete(label);
-        const restLabels = sortByLabel([...cardLabels] as CardLabel[]);
         return {
           type: 'fourOfAKind',
-          labels: [label as CardLabel, ...restLabels],
         };
       }
     }
@@ -103,59 +98,46 @@ const handTypeMap: Record<HandType, HandTypeMapCallback> = {
     }
 
     if (threeLabel && twoLabel) {
-      return { type: 'fullHouse', labels: [threeLabel, twoLabel] };
+      return { type: 'fullHouse' };
     }
 
     return undefined;
   },
-  threeOfAKind: (cards, labelCount) => {
-    const cardLabels = new Set(cards.split(''));
-    for (const [label, count] of Object.entries(labelCount)) {
+  threeOfAKind: (_, labelCount) => {
+    for (const [, count] of Object.entries(labelCount)) {
       if (count === 3) {
-        cardLabels.delete(label);
-        const restLabels = sortByLabel([...cardLabels] as CardLabel[]);
         return {
           type: 'threeOfAKind',
-          labels: [label as CardLabel, ...restLabels],
         };
       }
     }
     return undefined;
   },
-  twoPair: (cards, labelCount) => {
-    const cardLabels = new Set(cards.split(''));
+  twoPair: (_, labelCount) => {
     const twoLabels: CardLabel[] = [];
     for (const [label, count] of Object.entries(labelCount)) {
       if (count === 2) {
         twoLabels.push(label as CardLabel);
       }
       if (twoLabels.length === 2) {
-        cardLabels.delete(twoLabels[0]);
-        cardLabels.delete(twoLabels[1]);
-        const restLabels = sortByLabel([...cardLabels] as CardLabel[]);
         return {
           type: 'twoPair',
-          labels: [...sortByLabel(twoLabels), ...restLabels],
         };
       }
     }
     return undefined;
   },
-  onePair: (cards, labelCount) => {
-    const cardLabels = new Set(cards.split(''));
-    for (const [label, count] of Object.entries(labelCount)) {
+  onePair: (_, labelCount) => {
+    for (const [, count] of Object.entries(labelCount)) {
       if (count === 2) {
-        cardLabels.delete(label);
-        const restLabels = sortByLabel([...cardLabels] as CardLabel[]);
-        return { type: 'onePair', labels: [label as CardLabel, ...restLabels] };
+        return { type: 'onePair' };
       }
     }
     return undefined;
   },
-  highCard: (cards) => {
+  highCard: () => {
     return {
       type: 'highCard',
-      labels: sortByLabel(cards.split('') as CardLabel[]),
     };
   },
 };
@@ -177,12 +159,6 @@ function evaluateHand(hand: Hand): EvaluatedHand {
   }
 
   throw new Error('cards could not be evaluated');
-}
-
-function sortByLabel(cards: CardLabel[]) {
-  cards.sort((a, b) => cardLabels.indexOf(a) - cardLabels.indexOf(b));
-
-  return cards;
 }
 
 interface RankedHand extends EvaluatedHand {
@@ -207,7 +183,7 @@ function rankHands(evaluatedHands: EvaluatedHand[]): RankedHand[] {
         return labelA - labelB;
       }
 
-      throw new Error('no sort');
+      throw new Error('could not sort card');
     });
     result.push(...hands.map((hand) => ({ ...hand, rank: rankCount-- })));
   }
