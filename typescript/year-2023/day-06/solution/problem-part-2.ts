@@ -1,15 +1,16 @@
 export function solveProblem(input: string): number {
   const race = parseRace(input);
-  let newDistanceRecordCounter = 0;
+  const [result1, result2] = calcQuadraticEquation(
+    1,
+    -race.timeBudget,
+    race.distanceTraveled,
+  ).map(Math.floor);
 
-  for (let holdTime = 0; holdTime < race.timeBudget; holdTime += 1) {
-    const dist = calcDistanceTraveled(race.timeBudget, holdTime);
-    if (dist > race.distanceTraveled) {
-      newDistanceRecordCounter += 1;
-    }
+  if (result1 === undefined && result2 === undefined) {
+    throw new Error('invalid input value');
   }
 
-  return newDistanceRecordCounter;
+  return result1 - result2;
 }
 
 interface Race {
@@ -29,6 +30,25 @@ function parseRace(rawRace: string): Race {
   };
 }
 
-function calcDistanceTraveled(timeBudget: number, holdTime: number) {
-  return (timeBudget - holdTime) * holdTime;
+type QuadraticEquationResult = [] | [number] | [number, number];
+
+function calcQuadraticEquation(
+  a: number,
+  b: number,
+  c: number,
+): QuadraticEquationResult {
+  let result: QuadraticEquationResult = [];
+  const discriminant = b ** 2 - 4 * a * c;
+
+  if (discriminant > 0) {
+    const sqrtDiscriminant = Math.sqrt(discriminant);
+    result = [
+      ((-b + sqrtDiscriminant) / 2) * a,
+      ((-b - sqrtDiscriminant) / 2) * a,
+    ];
+  } else if (discriminant === 0) {
+    result = [(-b / 2) * a];
+  }
+
+  return result;
 }
