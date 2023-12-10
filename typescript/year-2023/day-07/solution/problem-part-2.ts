@@ -2,14 +2,12 @@ export function solveProblem(input: string): number {
   const hands = parseHands(input);
   const evaluatedHands = hands.map((hand) => evaluateHand(hand));
   const rankedHands = rankHands(evaluatedHands);
-
-  Bun.write('./day-07/solution/rankedHands.json', JSON.stringify(rankedHands));
-
   return rankedHands.reduce(
     (accumulator, hand) => accumulator + hand.bid * hand.rank,
     0,
   );
 }
+
 const cardLabels = [
   'A',
   'K',
@@ -25,7 +23,8 @@ const cardLabels = [
   '2',
   'J',
 ] as const;
-type CardLabel = typeof cardLabels[number];
+
+export type CardLabel = (typeof cardLabels)[number];
 
 interface Hand {
   bid: number;
@@ -51,7 +50,7 @@ const handTypes = [
   'highCard',
 ] as const;
 
-type HandType = typeof handTypes[number];
+export type HandType = (typeof handTypes)[number];
 type LabelCount = Record<CardLabel, number>;
 type HandTypeMapCallback = (cards: string, labelCount: LabelCount) => boolean;
 
@@ -59,7 +58,7 @@ interface HandStrength {
   type: HandType;
 }
 
-interface EvaluatedHand extends HandStrength, Hand { }
+interface EvaluatedHand extends HandStrength, Hand {}
 
 const handTypeMap: Record<HandType, HandTypeMapCallback> = {
   fiveOfAKind: (_, labelCount) => {
@@ -89,8 +88,7 @@ const handTypeMap: Record<HandType, HandTypeMapCallback> = {
     return false;
   },
   fullHouse: (_, labelCount) => {
-    // let threeLabel: undefined | CardLabel;
-    // let twoLabel: undefined | CardLabel;
+    // 23332
     const jokerCount = labelCount.J;
     const labelValues = Object.entries(labelCount)
       .filter(([key]) => key !== 'J')
@@ -102,34 +100,13 @@ const handTypeMap: Record<HandType, HandTypeMapCallback> = {
     ) {
       return true;
     }
-
-    // for (const [label, count] of Object.entries(labelCount)) {
-    //   if (label === 'J') {
-    //     continue;
-    //   }
-    //   if (cards === 'JQ24J') {
-    //     console.log(threeLabel, twoLabel, jokerCount);
-    //   }
-    //
-    //   // if (!threeLabel && count + jokerCount === 3) {
-    //   //   threeLabel = label as CardLabel;
-    //   //   jokerCount = Math.max(0, jokerCount - count);
-    //   // } else if (!twoLabel && count + jokerCount === 2) {
-    //   //   twoLabel = label as CardLabel;
-    //   //   jokerCount = Math.max(0, jokerCount - count);
-    //   // }
-    // }
-
-    // if (threeLabel && twoLabel) {
-    //   if (cards === 'JQ24J') {
-    //     console.error('incorrect fullHouse');
-    //   }
-    //   return true;
-    // }
-
-    //   if (cards === 'JQ24J') {
-    //     console.error('incorrect fullHouse');
-    //   }
+    if (
+      jokerCount === 0 &&
+      labelValues.includes(3) &&
+      labelValues.includes(2)
+    ) {
+      return true;
+    }
     return false;
   },
   threeOfAKind: (_, labelCount) => {
@@ -149,9 +126,7 @@ const handTypeMap: Record<HandType, HandTypeMapCallback> = {
       .filter(([key]) => key !== 'J')
       .map(([, value]) => value);
 
-    if (
-      labelValues.filter((label) => label === 2).length === 2
-    ) {
+    if (labelValues.filter((label) => label === 2).length === 2) {
       return true;
     }
 
@@ -174,7 +149,7 @@ const handTypeMap: Record<HandType, HandTypeMapCallback> = {
   },
 };
 
-function evaluateHand(hand: Hand): EvaluatedHand {
+export function evaluateHand(hand: Hand): EvaluatedHand {
   const labelCount = Object.fromEntries(
     cardLabels.map((label) => [label, 0]),
   ) as LabelCount;
@@ -197,7 +172,7 @@ interface RankedHand extends EvaluatedHand {
   rank: number;
 }
 
-function rankHands(evaluatedHands: EvaluatedHand[]): RankedHand[] {
+export function rankHands(evaluatedHands: EvaluatedHand[]): RankedHand[] {
   const result: RankedHand[] = [];
 
   let rankCount = evaluatedHands.length;
@@ -215,7 +190,7 @@ function rankHands(evaluatedHands: EvaluatedHand[]): RankedHand[] {
         return labelA - labelB;
       }
 
-      throw new Error('could not sort card');
+      return 0;
     });
     result.push(...hands.map((hand) => ({ ...hand, rank: rankCount-- })));
   }
