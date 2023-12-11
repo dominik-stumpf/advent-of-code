@@ -44,8 +44,6 @@ function countTraversalSteps({ nodes, instructions }: Map): number {
     }
 
     const instruction = instructionIndices[instructionIndex];
-    const _nodeIndex = 0;
-
     for (let i = 0; i < currentNodes.length; i += 1) {
       currentNodes[i] = nodes[currentNodes[i]][instruction];
     }
