@@ -35,7 +35,7 @@ function parsePipeGrid(rawPipeGrid: string): PipeGrid {
 
 const allDirections = ['up', 'right', 'down', 'left'] as const;
 
-type Direction = typeof allDirections[number];
+type Direction = (typeof allDirections)[number];
 
 const pipeMap: Record<string, [Direction, Direction]> = {
   '|': ['up', 'down'],
@@ -165,8 +165,9 @@ function traceVisualizer({ grid }: PipeGrid) {
     process.stdout.write(
       buffer.reduce(
         (accumulator, row) =>
-          `${accumulator +
-          row.map(({ color, cell }) => color + cell + colors.reset).join('')
+          `${
+            accumulator +
+            row.map(({ color, cell }) => color + cell + colors.reset).join('')
           }\n`,
         '',
       ),
