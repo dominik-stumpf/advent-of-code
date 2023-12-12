@@ -46,8 +46,12 @@ const pipeMap: Record<string, [Direction, Direction]> = {
   F: ['right', 'down'],
 } as const;
 
-function findValidAdjacentPipes(grid: PipeGrid['grid'], position: Vec2): Vec2[] {
-  const currentDirections = pipeMap[grid[position.x][position.y]] ?? allDirections;
+function findValidAdjacentPipes(
+  grid: PipeGrid['grid'],
+  position: Vec2,
+): Vec2[] {
+  const currentDirections =
+    pipeMap[grid[position.x][position.y]] ?? allDirections;
 
   return [
     { x: position.x + 1, y: position.y },
@@ -55,7 +59,9 @@ function findValidAdjacentPipes(grid: PipeGrid['grid'], position: Vec2): Vec2[] 
     { x: position.x, y: position.y + 1 },
     { x: position.x, y: position.y - 1 },
   ].filter((potentialPosition) => {
-    if (potentialPosition.x < 0 || potentialPosition.y < 0) { return false }
+    if (potentialPosition.x < 0 || potentialPosition.y < 0) {
+      return false;
+    }
 
     const pipe = grid.at(potentialPosition.x)?.at(potentialPosition.y);
     const directions = pipe ? pipeMap[pipe] : undefined;
@@ -89,13 +95,11 @@ function traceLongestPath({ startPosition, grid }: PipeGrid): number {
   let stepCount = 1;
 
   (function tracer(currentPosition: Vec2) {
-    const adjacentPipes = findValidAdjacentPipes(
-      grid,
-      currentPosition
-    );
+    const adjacentPipes = findValidAdjacentPipes(grid, currentPosition);
 
     for (const { x, y } of adjacentPipes) {
-      const isPipeAleadyTraced = tracedPositions.find((pos) => pos.x === x && pos.y === y) !== undefined
+      const isPipeAleadyTraced =
+        tracedPositions.find((pos) => pos.x === x && pos.y === y) !== undefined;
 
       if (!isPipeAleadyTraced) {
         // console.log(x, y)
