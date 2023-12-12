@@ -35,7 +35,7 @@ function parsePipeGrid(rawPipeGrid: string): PipeGrid {
 
 const allDirections = ['up', 'right', 'down', 'left'] as const;
 
-type Direction = (typeof allDirections)[number];
+type Direction = typeof allDirections[number];
 
 const pipeMap: Record<string, [Direction, Direction]> = {
   '|': ['up', 'down'],
@@ -93,6 +93,8 @@ function checkIfPathable(from: Direction, to: Direction): boolean {
 function traceLongestPath({ startPosition, grid }: PipeGrid): number {
   const tracedPositions: Vec2[] = [];
   let stepCount = 1;
+  // const visualizer = traceVisualizer({ startPosition, grid });
+  // console.log(startPosition);
 
   (function tracer(currentPosition: Vec2) {
     const adjacentPipes = findValidAdjacentPipes(grid, currentPosition);
@@ -102,8 +104,10 @@ function traceLongestPath({ startPosition, grid }: PipeGrid): number {
         tracedPositions.find((pos) => pos.x === x && pos.y === y) !== undefined;
 
       if (!isPipeAleadyTraced) {
-        // console.log(x, y)
-        // console.log(grid[x][y])
+        // setTimeout(() => {
+        //   visualizer.updateCellColor({ x, y }, 'fgWhite');
+        // }, stepCount * 250);
+
         tracedPositions.push({ x, y });
         stepCount += 1;
         tracer({ x, y });
@@ -112,4 +116,64 @@ function traceLongestPath({ startPosition, grid }: PipeGrid): number {
   })(startPosition);
 
   return stepCount / 2;
+}
+
+function traceVisualizer({ grid }: PipeGrid) {
+  const colors = {
+    reset: '\x1b[0m',
+    bright: '\x1b[1m',
+    dim: '\x1b[2m',
+    underscore: '\x1b[4m',
+    blink: '\x1b[5m',
+    reverse: '\x1b[7m',
+    hidden: '\x1b[8m',
+    fgBlack: '\x1b[30m',
+    fgRed: '\x1b[31m',
+    fgGreen: '\x1b[32m',
+    fgYellow: '\x1b[33m',
+    fgBlue: '\x1b[34m',
+    fgMagenta: '\x1b[35m',
+    fgCyan: '\x1b[36m',
+    fgWhite: '\x1b[37m',
+    fgGray: '\x1b[90m',
+  };
+
+  const buffer = Array.from({ length: grid.length }, (_, i) =>
+    grid[i].map((cell) => {
+      let color: string;
+      switch (cell) {
+        case 'S':
+          color = colors.fgYellow;
+          break;
+        default:
+          color = colors.fgBlack;
+          break;
+      }
+
+      return { cell, color };
+    }),
+  );
+
+  function updateCellColor({ x, y }: Vec2, newColor: keyof typeof colors) {
+    buffer[x][y].color = colors[newColor];
+    process.stdout.clearLine(1);
+    process.stdout.cursorTo(0, 0);
+    drawBufferToCanvas();
+  }
+
+  function drawBufferToCanvas() {
+    process.stdout.write(
+      buffer.reduce(
+        (accumulator, row) =>
+          `${accumulator +
+          row.map(({ color, cell }) => color + cell + colors.reset).join('')
+          }\n`,
+        '',
+      ),
+    );
+  }
+
+  console.clear();
+
+  return { updateCellColor };
 }
