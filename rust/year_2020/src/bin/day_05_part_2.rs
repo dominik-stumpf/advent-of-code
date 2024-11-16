@@ -1,6 +1,6 @@
 use bitvec::prelude::*;
 
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
 struct Seat(u16);
 
 impl Seat {
@@ -31,21 +31,11 @@ fn test_seat_id() {
 }
 
 fn main() {
-    let mut ids: Vec<_> = include_str!("./input_05_part_1")
-        .lines()
-        .map(Seat::parse)
-        .collect();
-    ids.sort();
-
-    let mut last_id: Option<Seat> = None;
-    for id in ids {
-        if let Some(last_id) = last_id {
-            let gap = id.0 - last_id.0;
-            if gap > 1 {
-                println!("Our seat ID is {}", last_id.0 + 1);
-                return;
-            }
-        }
-        last_id = Some(id);
-    }
+    let max_id = itertools::max(
+        include_str!("./input_05_part_1")
+            .lines()
+            .map(Seat::parse)
+            .map(|seat| seat.0),
+    );
+    println!("The maximum seat ID is {:?}", max_id);
 }
