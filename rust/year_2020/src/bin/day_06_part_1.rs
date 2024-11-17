@@ -25,7 +25,7 @@ fn main() {
 
     let sum = groups.iter().map(|group| group.0).sum::<usize>();
 
-    dbg!(groups, sum);
+    dbg!(sum);
 }
 
 #[test]
