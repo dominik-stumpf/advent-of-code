@@ -1,5 +1,4 @@
-fn intersects(ranges: &[[usize; 2]; 2]) -> bool {
-    let [r1, r2] = ranges;
+fn intersects([r1, r2]: &[[usize; 2]; 2]) -> bool {
     if r1[0] <= r2[0] && r1[1] >= r2[1] {
         return true;
     }
