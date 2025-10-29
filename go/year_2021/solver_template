@@ -1,0 +1,12 @@
+package day_xx
+
+import (
+	_ "embed"
+)
+
+//go:embed input
+var Input string
+
+func Solve(input string) (result int) {
+	return
+}
