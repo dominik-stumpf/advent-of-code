@@ -22,36 +22,32 @@ func (board *Board) mark(guess int) {
 	}
 }
 
+func hasCompleteSequence(cells []int) bool {
+	for _, cell := range cells {
+		if cell != -1 {
+			return false
+		}
+	}
+	return true
+}
+
 func (board Board) checkSequence() (hasSequence bool) {
 	width := len(board)
 	height := len(board[0])
 
 	for x := range width {
-		if board[0][x] == -1 {
-			for y := 1; y < height; y++ {
-				if board[y][x] != -1 {
-					break
-				}
-				if y == height-1 {
-					hasSequence = true
-					return
-				}
-			}
+		column := make([]int, height)
+		for y := range height {
+			column[y] = board[y][x]
+		}
+		if hasCompleteSequence(column) {
+			return true
 		}
 	}
 
-	// TODO: merge with horizontal check
 	for y := range height {
-		if board[y][0] == -1 {
-			for x := 1; x < width; x++ {
-				if board[y][x] != -1 {
-					break
-				}
-				if x == width-1 {
-					hasSequence = true
-					return
-				}
-			}
+		if hasCompleteSequence(board[y]) {
+			return true
 		}
 	}
 
