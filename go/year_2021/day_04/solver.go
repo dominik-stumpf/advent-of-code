@@ -108,17 +108,65 @@ func parsePuzzle(puzzle string) (result Puzzle) {
 	return
 }
 
+// func Solve(input string) (result int) {
+// 	puzzle := parsePuzzle(input)
+
+// 	var lastGuess int
+// 	var winningBoard Board
+// guessing:
+// 	for _, guess := range puzzle.Guesses {
+// 		lastGuess = guess
+// 		for _, board := range puzzle.Boards {
+// 			board.mark(guess)
+// 			if board.checkSequence() {
+// 				winningBoard = board
+// 				break guessing
+// 			}
+// 		}
+// 	}
+
+// 	for _, board := range puzzle.Boards {
+// 		board.print()
+// 		fmt.Printf("\n")
+// 	}
+
+// 	result = lastGuess * winningBoard.sum()
+
+// 	return
+// }
+
+func checkEvery[T any](items []T, predicate func(T) bool) bool {
+	for _, item := range items {
+		if !predicate(item) {
+			return false
+		}
+	}
+	return true
+}
+
 func Solve(input string) (result int) {
 	puzzle := parsePuzzle(input)
 
 	var lastGuess int
 	var winningBoard Board
+	var guessedBoards = make([]Board, len(puzzle.Boards))
+
 guessing:
 	for _, guess := range puzzle.Guesses {
 		lastGuess = guess
-		for _, board := range puzzle.Boards {
+		for i, board := range puzzle.Boards {
+			if len(guessedBoards[i]) > 0 {
+				continue
+			}
 			board.mark(guess)
-			if board.checkSequence() {
+			if !board.checkSequence() {
+				continue
+			}
+			guessedBoards[i] = board
+
+			if checkEvery(guessedBoards, func(board Board) bool {
+				return len(board) != 0
+			}) {
 				winningBoard = board
 				break guessing
 			}
@@ -129,6 +177,8 @@ guessing:
 		board.print()
 		fmt.Printf("\n")
 	}
+
+	fmt.Println(winningBoard.sum(), lastGuess)
 
 	result = lastGuess * winningBoard.sum()
 
