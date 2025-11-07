@@ -135,15 +135,6 @@ func parsePuzzle(puzzle string) (result Puzzle) {
 // 	return
 // }
 
-func checkEvery[T any](items []T, predicate func(T) bool) bool {
-	for _, item := range items {
-		if !predicate(item) {
-			return false
-		}
-	}
-	return true
-}
-
 func Solve(input string) (result int) {
 	puzzle := parsePuzzle(input)
 
@@ -154,6 +145,7 @@ func Solve(input string) (result int) {
 guessing:
 	for _, guess := range puzzle.Guesses {
 		lastGuess = guess
+	marking:
 		for i, board := range puzzle.Boards {
 			if len(guessedBoards[i]) > 0 {
 				continue
@@ -164,12 +156,13 @@ guessing:
 			}
 			guessedBoards[i] = board
 
-			if checkEvery(guessedBoards, func(board Board) bool {
-				return len(board) != 0
-			}) {
-				winningBoard = board
-				break guessing
+			for _, board := range guessedBoards {
+				if len(board) == 0 {
+					continue marking
+				}
 			}
+			winningBoard = board
+			break guessing
 		}
 	}
 
