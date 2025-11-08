@@ -84,14 +84,29 @@ func (diagram Diagram) countOverlaps() (count int) {
 	return
 }
 
-func Solve(input string) (result int) {
+func SolvePartOne(input string) int {
 	lines := parseInput(input)
 	diagram := make(Diagram)
+	for _, line := range lines {
+		if line.isDiagonal() {
+			continue
+		}
+		diagram.addLine(line)
+	}
 
+	return diagram.countOverlaps()
+}
+
+func SolvePartTwo(input string) int {
+	lines := parseInput(input)
+	diagram := make(Diagram)
 	for _, line := range lines {
 		diagram.addLine(line)
 	}
 
-	result = diagram.countOverlaps()
-	return
+	return diagram.countOverlaps()
+}
+
+func SolveBoth(input string) (int, int) {
+	return SolvePartOne(input), SolvePartTwo(input)
 }

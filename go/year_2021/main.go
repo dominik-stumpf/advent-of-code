@@ -9,7 +9,15 @@ import (
 )
 
 func main() {
-	result := day_05.Solve(strings.TrimSpace(day_05.Input))
+	resultPartOne, resultPartTwo := day_05.SolveBoth(strings.TrimSpace(day_05.Input))
+	if resultPartTwo == 0 {
+		handleResult(resultPartOne)
+	} else {
+		handleResult(resultPartTwo)
+	}
+}
+
+func handleResult(result int) {
 	fmt.Printf("\nresult: %d\n", result)
 	if result == 0 {
 		return

@@ -7,6 +7,14 @@ import (
 //go:embed input
 var Input string
 
-func Solve(input string) (result int) {
+func SolvePartOne(input string) (result int) {
 	return
+}
+
+func SolvePartTwo(input string) (result int) {
+	return
+}
+
+func SolveBoth(input string) (int, int) {
+	return SolvePartOne(input), SolvePartTwo(input)
 }
