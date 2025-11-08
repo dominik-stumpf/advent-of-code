@@ -14,7 +14,3 @@ func SolvePartOne(input string) (result int) {
 func SolvePartTwo(input string) (result int) {
 	return
 }
-
-func SolveBoth(input string) (int, int) {
-	return SolvePartOne(input), SolvePartTwo(input)
-}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"aoc/year_2021/day_05"
+	active_day "aoc/year_2021/day_06"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -9,8 +9,10 @@ import (
 )
 
 func main() {
-	resultPartOne, resultPartTwo := day_05.SolveBoth(strings.TrimSpace(day_05.Input))
+	input := strings.TrimSpace(active_day.Input)
+	resultPartTwo := active_day.SolvePartTwo(input)
 	if resultPartTwo == 0 {
+		resultPartOne := active_day.SolvePartOne(input)
 		handleResult(resultPartOne)
 	} else {
 		handleResult(resultPartTwo)

@@ -106,7 +106,3 @@ func SolvePartTwo(input string) int {
 
 	return diagram.countOverlaps()
 }
-
-func SolveBoth(input string) (int, int) {
-	return SolvePartOne(input), SolvePartTwo(input)
-}
