@@ -6,15 +6,26 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
+
+func printDuration(duration time.Duration) {
+	fmt.Printf("duration: %d\n", duration.Microseconds())
+}
 
 func main() {
 	input := strings.TrimSpace(active_day.Input)
+	start := time.Now()
 	resultPartTwo := active_day.SolvePartTwo(input)
+	duration := time.Since(start)
 	if resultPartTwo == 0 {
+		start := time.Now()
 		resultPartOne := active_day.SolvePartOne(input)
+		duration := time.Since(start)
+		printDuration(duration)
 		handleResult(resultPartOne)
 	} else {
+		printDuration(duration)
 		handleResult(resultPartTwo)
 	}
 }
