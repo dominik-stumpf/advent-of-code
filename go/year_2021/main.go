@@ -1,7 +1,7 @@
 package main
 
 import (
-	"aoc/year_2021/day_04"
+	"aoc/year_2021/day_05"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	result := day_04.Solve(strings.TrimSpace(day_04.Input))
+	result := day_05.Solve(strings.TrimSpace(day_05.Input))
 	fmt.Printf("\nresult: %d\n", result)
 	if result == 0 {
 		return
