@@ -1,7 +1,7 @@
 package main
 
 import (
-	active_day "aoc/year_2021/day_05"
+	active_day "aoc/year_2021/day_07"
 	"fmt"
 	"os/exec"
 	"strconv"
