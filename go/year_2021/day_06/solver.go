@@ -2,6 +2,8 @@ package day_06
 
 import (
 	_ "embed"
+	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -26,52 +28,65 @@ func parseInput(input string) []int {
 	return []int{}
 }
 
-// func calculateSpawn(progress int, day int) int {
-// 	growthTime := 7
-// 	rate := 1.0 / float64(growthTime)
-// 	delta := progress
-// 	if progress > growthTime {
-// 		delta = growthTime - progress - 1
-// 	}
-
-// 	spawn := int(math.Floor(rate*float64(day) + (rate * float64(delta))))
-// 	var result = spawn
-// 	for i := range spawn {
-// 		remainingDay := day - (progress + (i)*growthTime)
-// 		println(result, progress, day, remainingDay)
-// 		if remainingDay >= 0 {
-// 			result += calculateSpawn(8, remainingDay)
-// 		}
-// 	}
-// 	return int(math.Max(float64(result), 1))
-// }
+func PrintMemUsage() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	fmt.Printf("Alloc = %v MiB", m.Alloc/1024/1024)
+	fmt.Printf("\tSys = %v MiB", m.Sys/1024/1024)
+	fmt.Printf("\tNumGC = %v\n", m.NumGC)
+}
 
 func SolvePartOne(input string) (result int) {
 	fishes := parseInput(input)
-	for range 80 {
-		for i, fish := range fishes {
-			if fish > 0 {
-				fishes[i] -= 1
-			}
-			if fish == 0 {
-				fishes[i] = 6
-				fishes = append(fishes, 8)
+	cache := make(map[int]int)
+	for _, fish := range fishes {
+		if cache[fish] > 0 {
+			result += cache[fish]
+			continue
+		}
+		partial := []uint8{uint8(fish)}
+		for range 80 {
+			for i, fish := range partial {
+				if fish > 0 {
+					partial[i] -= 1
+				}
+				if fish == 0 {
+					partial[i] = 6
+					partial = append(partial, 8)
+				}
 			}
 		}
+		cache[fish] = len(partial)
+		result += len(partial)
 	}
-	result = len(fishes)
-
-	// first := fishes[0]
-	// spawn := calculateSpawn(first, 12)
-	// fmt.Println(spawn)
-
-	// for _, fish := range fishes {
-	// 	result += calculateSpawn(fish, 18)
-	// }
 
 	return
 }
 
 func SolvePartTwo(input string) (result int) {
+	fishes := parseInput(input)
+	cache := make(map[int]int)
+	for _, fish := range fishes {
+		if cache[fish] > 0 {
+			result += cache[fish]
+			continue
+		}
+		partial := []uint8{uint8(fish)}
+		for range 256 {
+			PrintMemUsage()
+			for i, fish := range partial {
+				if fish > 0 {
+					partial[i] -= 1
+				}
+				if fish == 0 {
+					partial[i] = 6
+					partial = append(partial, 8)
+				}
+			}
+		}
+		cache[fish] = len(partial)
+		result += len(partial)
+	}
+
 	return
 }
