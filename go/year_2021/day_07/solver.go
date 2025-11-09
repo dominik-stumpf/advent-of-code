@@ -2,6 +2,7 @@ package day_07
 
 import (
 	_ "embed"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -25,7 +26,7 @@ func (positions Positions) unwrap() (result []int) {
 	return
 }
 
-func (positions Positions) getCheapestPosition() (median int) {
+func (positions Positions) getMedian() (median int) {
 	pos := positions.unwrap()
 	slices.Sort(pos)
 	if len(pos)%2 == 0 {
@@ -36,10 +37,31 @@ func (positions Positions) getCheapestPosition() (median int) {
 	return
 }
 
+func (positions Positions) findCheapestAlignment() (cheapestAlignment int) {
+	minPos, maxPos := slices.Min(positions), slices.Max(positions)
+	lowestCost := math.Inf(1)
+	for align := int(minPos); align < int(maxPos)+1; align += 1 {
+		cost := float64(positions.getIncrementalCost(align))
+		if cost < lowestCost {
+			lowestCost = cost
+			cheapestAlignment = align
+		}
+	}
+	return
+}
+
 func (positions Positions) getCost(target int) (result int) {
 	for position := range positions {
 		cost := positions[position].align(target)
 		result += cost
+	}
+	return
+}
+
+func (positions Positions) getIncrementalCost(target int) (result int) {
+	for position := range positions {
+		cost := positions[position].align(target)
+		result += (cost * (cost + 1)) / 2
 	}
 	return
 }
@@ -64,11 +86,13 @@ func parseInput(input string) (positions Positions) {
 
 func SolvePartOne(input string) (result int) {
 	positions := parseInput(input)
-	result = positions.getCost(positions.getCheapestPosition())
-
+	result = positions.getCost(positions.getMedian())
 	return
 }
 
 func SolvePartTwo(input string) (result int) {
+	positions := parseInput(input)
+	cheapest := positions.findCheapestAlignment()
+	result = positions.getIncrementalCost(cheapest)
 	return
 }
