@@ -1,7 +1,7 @@
 package main
 
 import (
-	active_day "aoc/year_2021/day_06"
+	active_day "aoc/year_2021/day_05"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -10,7 +10,7 @@ import (
 )
 
 func printDuration(duration time.Duration) {
-	fmt.Printf("duration: %d\n", duration.Microseconds())
+	fmt.Printf("\nduration: %.2e\n", float64(duration.Microseconds()))
 }
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 }
 
 func handleResult(result int) {
-	fmt.Printf("\nresult: %d\n", result)
+	fmt.Printf("result: %d\n", result)
 	if result == 0 {
 		return
 	}
