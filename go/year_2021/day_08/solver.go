@@ -49,16 +49,6 @@ const (
 	Nine  Digit = "abcdfg"
 )
 
-// segments:
-//
-//  aaaa
-// b    c
-// b    c
-//  dddd
-// e    f
-// e    f
-//  gggg
-
 var digits = []Digit{Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine}
 var segmentCount = map[rune]int{
 	'a': 8,
@@ -87,13 +77,71 @@ func parseInput(input string) (result []NoteEntry) {
 	return
 }
 
+func (note NoteEntry) createSegmentLexicon() map[rune]rune {
+	segmentLexicon := map[rune]rune{}
+	digitLexicon := map[Digit]Digit{}
+	for _, digit := range []Digit{One, Four, Seven, Eight} {
+		for _, pattern := range note.Patterns {
+			if len(digit) == len(pattern) {
+				digitLexicon[digit] = pattern
+			}
+		}
+	}
+
+	// find 'b' 'e' 'f'
+	mixedSegmentCount := map[rune]int{}
+	for _, pattern := range note.Patterns {
+		for _, segment := range pattern {
+			mixedSegmentCount[segment]++
+		}
+	}
+	for _, segment := range segmentsWithDistincCount {
+		count := segmentCount[segment]
+		for mixedSegment, mixedCount := range mixedSegmentCount {
+			if mixedCount == count {
+				segmentLexicon[segment] = mixedSegment
+			}
+		}
+	}
+
+	// find 'c'
+	exclusion := digitLexicon[One].exclude(string(segmentLexicon['f']))
+	if len(exclusion) != 1 {
+		panic("'c' should be the only difference")
+	}
+	segmentLexicon['c'] = exclusion[0]
+
+	// find 'd'
+	exclusion = digitLexicon[Four].exclude(string(digitLexicon[One]) + string(segmentLexicon['b']))
+	if len(exclusion) != 1 {
+		panic("'d' should be the only difference")
+	}
+	segmentLexicon['d'] = exclusion[0]
+
+	// find 'a'
+	exclusion = digitLexicon[Seven].exclude(string(digitLexicon[One]))
+	if len(exclusion) != 1 {
+		panic("'a' should be the only difference")
+	}
+	segmentLexicon['a'] = exclusion[0]
+
+	// find 'g'
+	exclusion = digitLexicon[Eight].exclude(string(slices.Collect(maps.Values(segmentLexicon))))
+	if len(exclusion) != 1 {
+		panic("'g' should be the only difference")
+	}
+	segmentLexicon['g'] = exclusion[0]
+
+	return segmentLexicon
+}
+
 func SolvePartOne(input string) (result int) {
 	notes := parseInput(input)
 	digits := make(map[Digit]int)
 	for _, note := range notes {
 		for _, digit := range []Digit{One, Four, Seven, Eight} {
-			for _, Digit := range note.Output {
-				if len(digit) == len(Digit) {
+			for _, outputDigit := range note.Output {
+				if len(digit) == len(outputDigit) {
 					result += 1
 					digits[digit] += 1
 				}
@@ -108,60 +156,7 @@ func SolvePartOne(input string) (result int) {
 func SolvePartTwo(input string) (result int) {
 	notes := parseInput(input)
 	for _, note := range notes {
-		segmentLexicon := map[rune]rune{}
-		digitLexicon := map[Digit]Digit{}
-		for _, digit := range []Digit{One, Four, Seven, Eight} {
-			for _, pattern := range note.Patterns {
-				if len(digit) == len(pattern) {
-					digitLexicon[digit] = pattern
-				}
-			}
-		}
-
-		// find 'b' 'e' 'f'
-		mixedSegmentCount := map[rune]int{}
-		for _, pattern := range note.Patterns {
-			for _, segment := range pattern {
-				mixedSegmentCount[segment]++
-			}
-		}
-		for _, segment := range segmentsWithDistincCount {
-			count := segmentCount[segment]
-			for mixedSegment, mixedCount := range mixedSegmentCount {
-				if mixedCount == count {
-					segmentLexicon[segment] = mixedSegment
-				}
-			}
-		}
-
-		// find 'c'
-		exclusion := digitLexicon[One].exclude(string(segmentLexicon['f']))
-		if len(exclusion) != 1 {
-			panic("'c' should be the only difference")
-		}
-		segmentLexicon['c'] = exclusion[0]
-
-		// find 'd'
-		exclusion = digitLexicon[Four].exclude(string(digitLexicon[One]) + string(segmentLexicon['b']))
-		if len(exclusion) != 1 {
-			panic("'d' should be the only difference")
-		}
-		segmentLexicon['d'] = exclusion[0]
-
-		// find 'a'
-		exclusion = digitLexicon[Seven].exclude(string(digitLexicon[One]))
-		if len(exclusion) != 1 {
-			panic("'a' should be the only difference")
-		}
-		segmentLexicon['a'] = exclusion[0]
-
-		// find 'g'
-		exclusion = digitLexicon[Eight].exclude(string(slices.Collect(maps.Values(segmentLexicon))))
-		if len(exclusion) != 1 {
-			panic("'g' should be the only difference")
-		}
-		segmentLexicon['g'] = exclusion[0]
-
+		segmentLexicon := note.createSegmentLexicon()
 		reversedLexicon := make(map[rune]rune, len(segmentLexicon))
 		for key, value := range segmentLexicon {
 			reversedLexicon[value] = key
