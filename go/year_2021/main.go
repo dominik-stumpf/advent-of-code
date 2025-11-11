@@ -10,7 +10,7 @@ import (
 )
 
 func printDuration(duration time.Duration) {
-	fmt.Printf("\nduration: %.2e\n", float64(duration.Microseconds()))
+	fmt.Printf("\nduration: %v\n", duration)
 }
 
 func main() {
