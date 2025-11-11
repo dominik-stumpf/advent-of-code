@@ -2,12 +2,13 @@ package day_xx
 
 import (
 	_ "embed"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
 )
 
-//go:embed input
+//go:embed example
 var Input string
 
 type HeightMap [][]int
@@ -16,7 +17,7 @@ func checkIsInbound(predicate int, length int) bool {
 	return predicate >= 0 && predicate < length
 }
 
-func (heightMap HeightMap) findLowPoints() []int {
+func (heightMap HeightMap) findPossibleLowPointIndices() [][]int {
 	possibleLowPoints := [][]int{}
 	for _, row := range heightMap {
 		prevHeight := math.MaxInt
@@ -39,6 +40,11 @@ func (heightMap HeightMap) findLowPoints() []int {
 
 		possibleLowPoints = append(possibleLowPoints, lowPoints)
 	}
+	return possibleLowPoints
+}
+
+func (heightMap HeightMap) findLowPoints() []int {
+	possibleLowPoints := heightMap.findPossibleLowPointIndices()
 
 	confirmedLowPoints := []int{}
 	for y, lowPoints := range possibleLowPoints {
@@ -87,6 +93,42 @@ func parseInput(input string) (result HeightMap) {
 	return
 }
 
+func (heightMap HeightMap) traverse(startX, startY int, positions [][]int) {
+	if !checkIsInbound(startX, len(heightMap[0])) || !checkIsInbound(startY, len(heightMap)) {
+		panic("start point is out of bounds")
+	}
+
+	traverser := func(x, y int) {
+		height := heightMap[y][x]
+		if height == 9 {
+			return
+		}
+		for _, position := range positions {
+			if position[0] == x && position[1] == y {
+				return
+			}
+		}
+		fmt.Println(height)
+		positions := append(positions, []int{x, y})
+		heightMap.traverse(x, y, positions)
+	}
+
+	for i := range 2 {
+		offset := i/2 + 1
+		sign := 1 - 2*(i%2)
+		yNext := startY + (offset * sign)
+		if checkIsInbound(yNext, len(heightMap)) {
+			// traverser(startX, yNext)
+			// fmt.Println(heightMap[yNext][startX])
+		}
+		xNext := startY + (offset * sign)
+		if checkIsInbound(xNext, len(heightMap[0])) {
+			traverser(xNext, startY)
+			// fmt.Println(xNext, heightMap[startY][xNext])
+		}
+	}
+}
+
 func SolvePartOne(input string) (result int) {
 	heightMap := parseInput(input)
 	for _, height := range heightMap.findLowPoints() {
@@ -96,5 +138,10 @@ func SolvePartOne(input string) (result int) {
 }
 
 func SolvePartTwo(input string) (result int) {
+	heightMap := parseInput(input)
+	heightMap.traverse(3, 3, [][]int{})
+	// lowPoints := heightMap.findPossibleLowPointIndices()
+	// fmt.Println(lowPoints)
+	result = 1
 	return
 }
