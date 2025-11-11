@@ -2,13 +2,13 @@ package day_xx
 
 import (
 	_ "embed"
-	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 )
 
-//go:embed example
+//go:embed input
 var Input string
 
 type HeightMap [][]int
@@ -93,7 +93,9 @@ func parseInput(input string) (result HeightMap) {
 	return
 }
 
-func (heightMap HeightMap) traverse(startX, startY int, positions [][]int) {
+var positions [][2]int
+
+func (heightMap HeightMap) traverse(startX, startY int) {
 	if !checkIsInbound(startX, len(heightMap[0])) || !checkIsInbound(startY, len(heightMap)) {
 		panic("start point is out of bounds")
 	}
@@ -108,9 +110,8 @@ func (heightMap HeightMap) traverse(startX, startY int, positions [][]int) {
 				return
 			}
 		}
-		fmt.Println(height)
-		positions := append(positions, []int{x, y})
-		heightMap.traverse(x, y, positions)
+		positions = append(positions, [2]int{x, y})
+		heightMap.traverse(x, y)
 	}
 
 	for i := range 2 {
@@ -118,13 +119,11 @@ func (heightMap HeightMap) traverse(startX, startY int, positions [][]int) {
 		sign := 1 - 2*(i%2)
 		yNext := startY + (offset * sign)
 		if checkIsInbound(yNext, len(heightMap)) {
-			// traverser(startX, yNext)
-			// fmt.Println(heightMap[yNext][startX])
+			traverser(startX, yNext)
 		}
-		xNext := startY + (offset * sign)
+		xNext := startX + (offset * sign)
 		if checkIsInbound(xNext, len(heightMap[0])) {
 			traverser(xNext, startY)
-			// fmt.Println(xNext, heightMap[startY][xNext])
 		}
 	}
 }
@@ -139,9 +138,23 @@ func SolvePartOne(input string) (result int) {
 
 func SolvePartTwo(input string) (result int) {
 	heightMap := parseInput(input)
-	heightMap.traverse(3, 3, [][]int{})
-	// lowPoints := heightMap.findPossibleLowPointIndices()
-	// fmt.Println(lowPoints)
+	lowPoints := heightMap.findPossibleLowPointIndices()
+	basins := []int{}
+	var prevBasin int
+	for y, lowPoint := range lowPoints {
+		for _, x := range lowPoint {
+			heightMap.traverse(x, y)
+			if prevBasin == len(positions) {
+				continue
+			}
+			basins = append(basins, len(positions)-prevBasin)
+			prevBasin = len(positions)
+		}
+	}
+	slices.Sort(basins)
 	result = 1
+	for _, basin := range basins[len(basins)-3:] {
+		result *= basin
+	}
 	return
 }
