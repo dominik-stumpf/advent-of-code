@@ -111,7 +111,7 @@ func SolvePartTwo(input string) (result int) {
 	// 	fmt.Println(path)
 	// 	// fmt.Println(strings.Join(slices.Insert(append(path, "end"), 0, "start"), ","))
 	// }
-	result = len(paths) // 144603
+	result = len(paths)
 
 	return
 }
