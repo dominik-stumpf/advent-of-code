@@ -96,21 +96,25 @@ func parseInput(input string) Grid {
 
 func SolvePartOne(input string) (result int) {
 	grid := parseInput(input)
-	// grid.print()
-	// grid.step()
-	// fmt.Println()
-	// grid.print()
-	// grid.step()
-	// fmt.Println()
-	// grid.print()
-
 	for range 100 {
 		result += grid.step()
 	}
-
 	return
 }
 
 func SolvePartTwo(input string) (result int) {
+	grid := parseInput(input)
+	bound := 1000
+	for i := range bound {
+		flashes := grid.step()
+		if flashes == len(grid[0])*len(grid) {
+			result = i + 1
+			break
+		}
+		if i >= bound-1 {
+			panic("step index out of bound")
+		}
+	}
+
 	return
 }
