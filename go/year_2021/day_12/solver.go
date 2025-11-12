@@ -55,10 +55,14 @@ func traverse(nodes NodeMap) [][]string {
 }
 
 func traverseWithRevisit(nodes NodeMap) [][]string {
-	var tracer func(startNode string, path []string)
+	var tracer func(path []string)
 	paths := [][]string{}
 
-	tracer = func(startNode string, path []string) {
+	tracer = func(path []string) {
+		startNode := "start"
+		if len(path) > 0 {
+			startNode = path[len(path)-1]
+		}
 		neighbors := nodes[startNode]
 	neighbor:
 		for _, node := range neighbors {
@@ -84,11 +88,11 @@ func traverseWithRevisit(nodes NodeMap) [][]string {
 					continue neighbor
 				}
 			}
-			tracer(node, append(path, node))
+			tracer(append(path, node))
 		}
 	}
 
-	tracer("start", []string{})
+	tracer([]string{})
 	return paths
 }
 
