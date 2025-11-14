@@ -27,8 +27,7 @@ type Manual struct {
 	Folds []FoldInstruction
 }
 
-func (manual Manual) Fold() {
-	fold := manual.Folds[0]
+func (manual Manual) Fold(fold FoldInstruction) {
 	if fold.FoldAxis == 'y' {
 		for _, dot := range manual.Dots {
 			if dot.Y <= fold.Position {
@@ -101,7 +100,7 @@ func parseInput(input string) (result Manual) {
 func SolvePartOne(input string) (result int) {
 	manual := parseInput(input)
 	fmt.Print(manual, "\n\n\n")
-	manual.Fold()
+	manual.Fold(manual.Folds[0])
 	fmt.Println(manual)
 
 	dots := map[string]struct{}{}
@@ -110,10 +109,15 @@ func SolvePartOne(input string) (result int) {
 		dots[key] = struct{}{}
 	}
 	result = len(dots)
-
 	return
 }
 
 func SolvePartTwo(input string) (result int) {
+	manual := parseInput(input)
+	for _, fold := range manual.Folds {
+		manual.Fold(fold)
+	}
+	fmt.Printf("%v\n", manual)
+	result = -1
 	return
 }
