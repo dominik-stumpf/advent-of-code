@@ -56,65 +56,58 @@ func (template *PolymerTemplate) Step(rules PairInsertionRules) {
 // 3 map[CB:1 NC:1 NN:1]
 // CH HB | NB BC | NC CN
 // 6 map[BC:1 CH:1 CN:1 HB:1 NB:1 NC:1]
-func stepFast(rules PairInsertionRules, state map[string]int) map[string]int {
-	result := map[string]int{}
-	for pattern, count := range state {
+func stepFast(rules PairInsertionRules, state *map[string]int, diff *map[byte]int) {
+	nextState := map[string]int{}
+	// diff := map[byte]int{}
+	for pattern, count := range *state {
 		insert := rules[pattern]
+		(*diff)[insert] += 1 * count
+		// fmt.Println(insert)
 		variants := [2][]byte{{pattern[0], insert}, {insert, pattern[1]}}
 		for _, variant := range variants {
-			result[string(variant)] += 1 * count
+			nextState[string(variant)] += 1 * count
 		}
 	}
+	*state = nextState
 
-	return result
+	// return nextState, diff
 }
-func castElements(statec map[string]int, length int) map[byte]int {
+
+func castElements(state map[string]int, length int) map[byte]int {
 	var result map[byte]int
 
 	var target int
-	for range 1000000 {
+	for range 10000000 {
 		if length == target {
-			// fmt.Println("castElements:", string(result), target, length)
 			break
 		}
-		var state = map[string]int{}
-		for key, value := range statec {
-			state[key] = value
-		}
+		var stateCopy = map[string]int{}
+		maps.Copy(stateCopy, state)
 		var next byte
 		target = 0
 		result = map[byte]int{}
 		var notFound bool
 		for {
-			if len(state) == 0 {
-				// result = append(result, next)
+			if len(stateCopy) == 0 {
 				result[next]++
 				target += 1
-				// fmt.Println("exhaust")
 				break
 			}
 			if notFound {
-				// fmt.Println("not found")
 				break
 			}
-			// fmt.Println(string(next), state)
 			notFound = true
-			for key, _ := range state {
+			for key, _ := range stateCopy {
 				if key[0] != next && next != 0 {
 					continue
 				}
 				notFound = false
 				next = key[1]
 				result[key[0]]++
-				// result = append(result, key[0])
 				target += 1
-				// for key, _ := range state {
-				// 	if key[0] == next {
-				// 	}
-				// }
-				state[key]--
-				if state[key] <= 0 {
-					delete(state, key)
+				stateCopy[key]--
+				if stateCopy[key] <= 0 {
+					delete(stateCopy, key)
 				}
 				break
 			}
@@ -164,18 +157,14 @@ func SolvePartOne(input string) (result int) {
 
 func SolvePartTwo(input string) (result int) {
 	template, rules := parseInput(input)
-	step := 20
-	expectedLength := len(template)
+	step := 40
 	patterns := template.ConvertToPatterns(rules)
-	for range step {
-		expectedLength = (expectedLength * 2) - 1
-		patterns = stepFast(rules, patterns)
+	elements := map[byte]int{}
+	for _, element := range template {
+		elements[element]++
 	}
-	elements := castElements(patterns, expectedLength)
-	fmt.Println(elements)
-	var elementsSum int
-	for _, count := range elements {
-		elementsSum += count
+	for range step {
+		stepFast(rules, &patterns, &elements)
 	}
 	keys := slices.Collect(maps.Keys(elements))
 	max := slices.MaxFunc(keys, func(a, b byte) int {
