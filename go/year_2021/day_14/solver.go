@@ -169,44 +169,8 @@ func SolvePartTwo(input string) (result int) {
 	patterns := template.ConvertToPatterns(rules)
 	for range step {
 		expectedLength = (expectedLength * 2) - 1
-		// fmt.Println(string(template), patterns)
-		// patternsOld := template.ConvertToPatterns(rules)
-		// fmt.Println(patternsOld, patterns)
-		// fmt.Println(maps.Equal(patternsOld, patterns))
 		patterns = stepFast(rules, patterns)
-		// for key := range patterns {
-		// 	fmt.Print(string(key[0])+string(rules[key])+string(key[1]), ",")
-		// }
-		// fmt.Println(len(template))
-		// template.Step(rules)
 	}
-	// elements := map[byte]int{}
-	// for pattern, count := range patterns {
-	// 	for _, char := range []byte(pattern) {
-	// 		elements[char] += (1 * count)
-	// 	}
-	// }
-	// var elementsSum int
-	// for _, count := range elements {
-	// 	elementsSum += count
-	// }
-	// elementsOld := template.CountElements()
-	// // fmt.Println(string(template), patterns)
-	// fmt.Println(elementsSum, len(template), expectedLength)
-	// fmt.Print("\n")
-	// for key, value := range elements {
-	// 	fmt.Print(string(key), " ", value, elementsOld[key], "\n")
-	// }
-	// // fmt.Println(elementsOld)
-	// keys := slices.Collect(maps.Keys(elements))
-	// max := slices.MaxFunc(keys, func(a, b byte) int {
-	// 	return cmp.Compare(elements[a], elements[b])
-	// })
-	// min := slices.MinFunc(keys, func(a, b byte) int {
-	// 	return cmp.Compare(elements[a], elements[b])
-	// })
-	// result = elements[max] - elements[min]
-
 	elements := castElements(patterns, expectedLength)
 	fmt.Println(elements)
 	var elementsSum int
