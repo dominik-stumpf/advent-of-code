@@ -53,69 +53,17 @@ func (template *PolymerTemplate) Step(rules PairInsertionRules) {
 	}
 }
 
-// 3 map[CB:1 NC:1 NN:1]
-// CH HB | NB BC | NC CN
-// 6 map[BC:1 CH:1 CN:1 HB:1 NB:1 NC:1]
 func stepFast(rules PairInsertionRules, state *map[string]int, diff *map[byte]int) {
 	nextState := map[string]int{}
-	// diff := map[byte]int{}
 	for pattern, count := range *state {
 		insert := rules[pattern]
 		(*diff)[insert] += 1 * count
-		// fmt.Println(insert)
 		variants := [2][]byte{{pattern[0], insert}, {insert, pattern[1]}}
 		for _, variant := range variants {
 			nextState[string(variant)] += 1 * count
 		}
 	}
 	*state = nextState
-
-	// return nextState, diff
-}
-
-func castElements(state map[string]int, length int) map[byte]int {
-	var result map[byte]int
-
-	var target int
-	for range 10000000 {
-		if length == target {
-			break
-		}
-		var stateCopy = map[string]int{}
-		maps.Copy(stateCopy, state)
-		var next byte
-		target = 0
-		result = map[byte]int{}
-		var notFound bool
-		for {
-			if len(stateCopy) == 0 {
-				result[next]++
-				target += 1
-				break
-			}
-			if notFound {
-				break
-			}
-			notFound = true
-			for key, _ := range stateCopy {
-				if key[0] != next && next != 0 {
-					continue
-				}
-				notFound = false
-				next = key[1]
-				result[key[0]]++
-				target += 1
-				stateCopy[key]--
-				if stateCopy[key] <= 0 {
-					delete(stateCopy, key)
-				}
-				break
-			}
-		}
-		fmt.Println(target, length)
-	}
-
-	return result
 }
 
 func (template *PolymerTemplate) ConvertToPatterns(rules PairInsertionRules) map[string]int {
