@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-//go:embed example
+//go:embed input
 var Input string
 
 func ParseInput(input string) (result [][]int) {
@@ -157,6 +157,26 @@ func printWithPath(grid [][]int, path []Point) {
 	}
 }
 
+func scaleGrid(grid [][]int, sizeFactor int) [][]int {
+	result := make([][]int, len(grid)*sizeFactor)
+	for y := range result {
+		row := make([]int, len(grid[0])*sizeFactor)
+		result[y] = row
+	}
+	for y, row := range grid {
+		for x := range row {
+			start := grid[y][x]
+			for y1 := range sizeFactor {
+				for x1 := range sizeFactor {
+					col := (start+x1+y1-1)%9 + 1
+					result[y1*len(grid)+y][len(grid[0])*x1+x] = col
+				}
+			}
+		}
+	}
+	return result
+}
+
 func SolvePartOne(input string) (result int) {
 	grid := ParseInput(input)
 
@@ -169,5 +189,13 @@ func SolvePartOne(input string) (result int) {
 }
 
 func SolvePartTwo(input string) (result int) {
+	grid := ParseInput(input)
+	grid = scaleGrid(grid, 5)
+
+	start := Point{0, 0}
+	end := Point{len(grid[0]) - 1, len(grid) - 1}
+
+	_, totalCost := Dijkstra(grid, start, end)
+	result = totalCost - grid[0][0]
 	return
 }
