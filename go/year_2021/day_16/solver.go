@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-//go:embed example_operator
+//go:embed input
 var Input string
 
 type Packet struct {
@@ -20,7 +20,6 @@ type Packet struct {
 
 type LiteralPacket struct {
 	Packet Packet
-	Value  uint
 }
 
 type OperatorPacket struct {
@@ -31,6 +30,7 @@ type OperatorPacket struct {
 }
 
 const PacketHeaderLength = 6
+const LiteralPacketChunkSize = 5
 
 func ParsePacket(binary string) (packet Packet) {
 	version, err := strconv.ParseUint(binary[:3], 2, 0)
@@ -42,32 +42,8 @@ func ParsePacket(binary string) (packet Packet) {
 		panic(err)
 	}
 	packet = Packet{Version: uint(version), TypeID: uint(typeID), Body: binary[PacketHeaderLength:]}
-	// if packet.checkIsOperatorPacket() {
-	// 	packet.tryParseOperatorPacket()
-	// }
-	// fmt.Printf("%+v\n", packet)
 	return
 }
-
-// func parseLiteralValue(binary string) (uint, uint) {
-// 	var values []rune
-// 	var i int
-// 	var chunkSize = 5
-// 	for chunk := range slices.Chunk([]rune(binary), chunkSize) {
-// 		isLastGroupBit, value := chunk[0], chunk[1:]
-// 		values = append(values, value...)
-// 		i += 1
-// 		if isLastGroupBit == '0' {
-// 			break
-// 		}
-// 	}
-
-// 	result, err := strconv.ParseUint(string(values), 2, 0)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return uint(result), uint(i * chunkSize)
-// }
 
 func ParseOperatorPacket(packet Packet) OperatorPacket {
 	operatorPacket := OperatorPacket{Packet: packet}
@@ -82,7 +58,6 @@ func ParseOperatorPacket(packet Packet) OperatorPacket {
 		if err != nil {
 			panic(err)
 		}
-		// operatorPacket.Packet.Body = packet.Body[16 : lengthOfSubpackets+16]
 		operatorPacket.Packet.Body = packet.Body[16:]
 		operatorPacket.LengthOfSubPackets = uint(lengthOfSubpackets)
 	case 1:
@@ -116,11 +91,6 @@ func (p OperatorPacket) GetHeaderOffset() int {
 	return PacketHeaderLength + lengthTypeIdBit + lengthTypeId
 }
 
-type PacketReader interface {
-	Read() iter.Seq[string]
-	GetHeaderOffset() int
-}
-
 func (p Packet) ParsePacketReader() PacketReader {
 	switch p.TypeID {
 	case 4:
@@ -130,8 +100,9 @@ func (p Packet) ParsePacketReader() PacketReader {
 	}
 }
 
-func (p OperatorPacket) Read() iter.Seq[string] {
+func (p OperatorPacket) Read(subPackets *[]Packet) iter.Seq[string] {
 	fmt.Printf("%+v\n", p)
+	*subPackets = append(*subPackets, p.Packet)
 	return func(yield func(string) bool) {
 		switch p.LengthTypeID {
 		case 0:
@@ -139,7 +110,7 @@ func (p OperatorPacket) Read() iter.Seq[string] {
 			var leftOffset, rightOffset int
 			for {
 				reader := ParsePacket(body[leftOffset:]).ParsePacketReader()
-				rightOffset += len(strings.Join(slices.Collect(reader.Read()), "")) + reader.GetHeaderOffset()
+				rightOffset += len(strings.Join(slices.Collect(reader.Read(subPackets)), "")) + reader.GetHeaderOffset()
 				if !yield(body[leftOffset:rightOffset]) || rightOffset >= len(body) {
 					return
 				}
@@ -150,8 +121,8 @@ func (p OperatorPacket) Read() iter.Seq[string] {
 			var leftOffset, rightOffset int
 			for range p.NumberOfSubPackets {
 				reader := ParsePacket(body[leftOffset:]).ParsePacketReader()
-				rightOffset += len(strings.Join(slices.Collect(reader.Read()), "")) + reader.GetHeaderOffset()
-				if !yield(body[leftOffset:rightOffset]) || rightOffset >= len(body) {
+				rightOffset += len(strings.Join(slices.Collect(reader.Read(subPackets)), "")) + reader.GetHeaderOffset()
+				if !yield(body[leftOffset:rightOffset]) {
 					return
 				}
 				leftOffset = rightOffset
@@ -162,11 +133,11 @@ func (p OperatorPacket) Read() iter.Seq[string] {
 	}
 }
 
-func (p LiteralPacket) Read() iter.Seq[string] {
+func (p LiteralPacket) Read(subPackets *[]Packet) iter.Seq[string] {
 	fmt.Printf("%+v\n", p)
-	chunkSize := 5
+	*subPackets = append(*subPackets, p.Packet)
 	return func(yield func(string) bool) {
-		for chunk := range slices.Chunk([]rune(p.Packet.Body), chunkSize) {
+		for chunk := range slices.Chunk([]rune(p.Packet.Body), LiteralPacketChunkSize) {
 			isLastGroupBit := chunk[0]
 			if !yield(string(chunk)) || isLastGroupBit == '0' {
 				return
@@ -175,7 +146,54 @@ func (p LiteralPacket) Read() iter.Seq[string] {
 	}
 }
 
-func (p LiteralPacket) Evaluate() {}
+func (p OperatorPacket) GetBodyLength() int {
+	fmt.Printf("%+v\n", p)
+	switch p.LengthTypeID {
+	case 0:
+		return int(p.LengthOfSubPackets)
+	case 1:
+		body := p.Packet.Body
+		var leftOffset, rightOffset int
+		for range p.NumberOfSubPackets {
+			reader := ParsePacket(body[leftOffset:]).ParsePacketReader()
+			rightOffset += reader.GetBodyLength() + reader.GetHeaderOffset()
+			leftOffset = rightOffset
+		}
+		return rightOffset
+	default:
+		panic("type not implemented")
+	}
+}
+
+func (p LiteralPacket) GetBodyLength() int {
+	fmt.Printf("%+v\n", p)
+	return len(p.Packet.Body) / LiteralPacketChunkSize
+}
+
+type PacketReader interface {
+	Read(subPackets *[]Packet) iter.Seq[string]
+	GetHeaderOffset() int
+	GetBodyLength() int
+}
+
+func (p LiteralPacket) Evaluate() uint {
+	var values []rune
+	var i int
+	for chunk := range p.Read(&[]Packet{}) {
+		runes := []rune(chunk)
+		isLastGroupBit, value := runes[0], runes[1:]
+		values = append(values, value...)
+		i += 1
+		if isLastGroupBit == '0' {
+			break
+		}
+	}
+	result, err := strconv.ParseUint(string(values), 2, 0)
+	if err != nil {
+		panic(err)
+	}
+	return uint(result)
+}
 
 func (packet Packet) GetVersionSum() (sum uint) {
 	// for l := range ParsePacket("110100101111111000101000").ParsePacketReader().Read() {
@@ -187,15 +205,24 @@ func (packet Packet) GetVersionSum() (sum uint) {
 	// 0101001000100100
 	// ---
 
-	sum += packet.Version
 	reader := packet.ParsePacketReader()
-	// fmt.Printf("%+v\n", reader)
-	for elem := range reader.Read() {
-		sum += ParsePacket(elem).Version
-		fmt.Println("p:", elem)
+	subPackets := []Packet{}
+	for range reader.Read(&subPackets) {
 	}
+	for _, subPacket := range subPackets {
+		sum += subPacket.Version
+	}
+	// for elem := range reader.Read(&subPackets) {
+	// 	sum += ParsePacket(elem).Version
+	// 	fmt.Println("p:", elem)
+	// }
+
+	// reader := packet.ParsePacketReader()
+	// fmt.Println(reader.GetBodyLength())
 
 	return sum
+
+	// fmt.Printf("%+v\n", reader)
 }
 
 func parseInput(hex string) Packet {
