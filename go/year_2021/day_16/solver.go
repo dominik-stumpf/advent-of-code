@@ -101,7 +101,7 @@ func (p Packet) ParsePacketReader() PacketReader {
 }
 
 func (p OperatorPacket) Read(subPackets *[]Packet) iter.Seq[string] {
-	fmt.Printf("%+v\n", p)
+	// fmt.Printf("%+v\n", p)
 	*subPackets = append(*subPackets, p.Packet)
 	return func(yield func(string) bool) {
 		switch p.LengthTypeID {
@@ -134,7 +134,7 @@ func (p OperatorPacket) Read(subPackets *[]Packet) iter.Seq[string] {
 }
 
 func (p LiteralPacket) Read(subPackets *[]Packet) iter.Seq[string] {
-	fmt.Printf("%+v\n", p)
+	// fmt.Printf("%+v\n", p)
 	*subPackets = append(*subPackets, p.Packet)
 	return func(yield func(string) bool) {
 		for chunk := range slices.Chunk([]rune(p.Packet.Body), LiteralPacketChunkSize) {
@@ -147,7 +147,6 @@ func (p LiteralPacket) Read(subPackets *[]Packet) iter.Seq[string] {
 }
 
 func (p OperatorPacket) GetBodyLength() int {
-	fmt.Printf("%+v\n", p)
 	switch p.LengthTypeID {
 	case 0:
 		return int(p.LengthOfSubPackets)
@@ -166,7 +165,6 @@ func (p OperatorPacket) GetBodyLength() int {
 }
 
 func (p LiteralPacket) GetBodyLength() int {
-	fmt.Printf("%+v\n", p)
 	return len(p.Packet.Body) / LiteralPacketChunkSize
 }
 
@@ -196,15 +194,6 @@ func (p LiteralPacket) Evaluate() uint {
 }
 
 func (packet Packet) GetVersionSum() (sum uint) {
-	// for l := range ParsePacket("110100101111111000101000").ParsePacketReader().Read() {
-	// 	fmt.Println(l)
-	// }
-
-	// 110100010100101001000100100
-	// 11010001010
-	// 0101001000100100
-	// ---
-
 	reader := packet.ParsePacketReader()
 	subPackets := []Packet{}
 	for range reader.Read(&subPackets) {
@@ -212,22 +201,12 @@ func (packet Packet) GetVersionSum() (sum uint) {
 	for _, subPacket := range subPackets {
 		sum += subPacket.Version
 	}
-	// for elem := range reader.Read(&subPackets) {
-	// 	sum += ParsePacket(elem).Version
-	// 	fmt.Println("p:", elem)
-	// }
-
-	// reader := packet.ParsePacketReader()
-	// fmt.Println(reader.GetBodyLength())
-
 	return sum
-
-	// fmt.Printf("%+v\n", reader)
 }
 
 func parseInput(hex string) Packet {
 	var binary string
-	for _, char := range hex { // strings.TrimRight(hex, "0") {
+	for _, char := range strings.TrimRight(hex, "0") {
 		elem, err := strconv.ParseUint(string(char), 16, 0)
 		if err != nil {
 			panic(err)
