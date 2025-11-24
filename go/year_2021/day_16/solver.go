@@ -1,6 +1,7 @@
 package day_16
 
 import (
+	"cmp"
 	_ "embed"
 	"fmt"
 	"iter"
@@ -14,7 +15,7 @@ var Input string
 
 type Packet struct {
 	Version uint
-	TypeID  uint
+	TypeID  TypeID
 	Body    string
 }
 
@@ -27,7 +28,21 @@ type OperatorPacket struct {
 	LengthTypeID       uint
 	LengthOfSubPackets uint
 	NumberOfSubPackets uint
+	Children           []PacketReader
 }
+
+type TypeID uint
+
+const (
+	TypeSum TypeID = iota
+	TypeProduct
+	TypeMinimum
+	TypeMaximum
+	TypeLiteralValue
+	TypeGreaterThan
+	TypeLessThan
+	TypeEqualTo
+)
 
 const PacketHeaderLength = 6
 const LiteralPacketChunkSize = 5
@@ -41,7 +56,8 @@ func ParsePacket(binary string) (packet Packet) {
 	if err != nil {
 		panic(err)
 	}
-	packet = Packet{Version: uint(version), TypeID: uint(typeID), Body: binary[PacketHeaderLength:]}
+	packet = Packet{Version: uint(version), TypeID: TypeID(typeID), Body: binary[PacketHeaderLength:]}
+	// fmt.Printf("%+v\n", packet)
 	return
 }
 
@@ -93,7 +109,7 @@ func (p OperatorPacket) GetHeaderOffset() int {
 
 func (p Packet) ParsePacketReader() PacketReader {
 	switch p.TypeID {
-	case 4:
+	case TypeLiteralValue:
 		return LiteralPacket{Packet: p}
 	default:
 		return ParseOperatorPacket(p)
@@ -101,7 +117,7 @@ func (p Packet) ParsePacketReader() PacketReader {
 }
 
 func (p OperatorPacket) Read(subPackets *[]Packet) iter.Seq[string] {
-	// fmt.Printf("%+v\n", p)
+	fmt.Printf("%+v\n", p)
 	*subPackets = append(*subPackets, p.Packet)
 	return func(yield func(string) bool) {
 		switch p.LengthTypeID {
@@ -134,7 +150,8 @@ func (p OperatorPacket) Read(subPackets *[]Packet) iter.Seq[string] {
 }
 
 func (p LiteralPacket) Read(subPackets *[]Packet) iter.Seq[string] {
-	// fmt.Printf("%+v\n", p)
+	fmt.Printf("%+v\n", p)
+	fmt.Printf("literalValue: %d\n", p.EvalValue())
 	*subPackets = append(*subPackets, p.Packet)
 	return func(yield func(string) bool) {
 		for chunk := range slices.Chunk([]rune(p.Packet.Body), LiteralPacketChunkSize) {
@@ -160,26 +177,74 @@ func (p OperatorPacket) GetBodyLength() int {
 		}
 		return rightOffset
 	default:
-		panic("type not implemented")
+		panic("length type not implemented")
 	}
 }
 
 func (p LiteralPacket) GetBodyLength() int {
-	return len(p.Packet.Body) / LiteralPacketChunkSize
+	var length int
+	for chunk := range slices.Chunk([]rune(p.Packet.Body), LiteralPacketChunkSize) {
+		isLastGroupBit := chunk[0]
+		length += 1
+		if isLastGroupBit == '0' {
+			break
+		}
+	}
+	return length * LiteralPacketChunkSize
 }
 
 type PacketReader interface {
 	Read(subPackets *[]Packet) iter.Seq[string]
 	GetHeaderOffset() int
 	GetBodyLength() int
+	EvalValue() int
 }
 
-func (p LiteralPacket) Evaluate() uint {
+func (p OperatorPacket) EvalValue() (result int) {
+	switch p.Packet.TypeID {
+	case TypeSum:
+		for _, child := range p.Children {
+			result += child.EvalValue()
+		}
+	case TypeProduct:
+		if len(p.Children) > 0 {
+			result = 1
+		}
+		for _, child := range p.Children {
+			result *= child.EvalValue()
+		}
+	case TypeMinimum:
+		result = slices.MinFunc(p.Children, func(a, b PacketReader) int {
+			return cmp.Compare(a.EvalValue(), b.EvalValue())
+		}).EvalValue()
+	case TypeMaximum:
+		result = slices.MaxFunc(p.Children, func(a, b PacketReader) int {
+			return cmp.Compare(a.EvalValue(), b.EvalValue())
+		}).EvalValue()
+	case TypeGreaterThan:
+		if p.Children[0].EvalValue() > p.Children[1].EvalValue() {
+			result = 1
+		}
+	case TypeLessThan:
+		if p.Children[0].EvalValue() < p.Children[1].EvalValue() {
+			result = 1
+		}
+	case TypeEqualTo:
+		if p.Children[0].EvalValue() == p.Children[1].EvalValue() {
+			result = 1
+		}
+	default:
+		panic("packet type not implemented")
+	}
+	return result
+}
+
+func (p LiteralPacket) EvalValue() int {
 	var values []rune
 	var i int
-	for chunk := range p.Read(&[]Packet{}) {
-		runes := []rune(chunk)
-		isLastGroupBit, value := runes[0], runes[1:]
+	// for chunk := range p.Read(&[]Packet{}) {
+	for chunk := range slices.Chunk([]rune(p.Packet.Body), LiteralPacketChunkSize) {
+		isLastGroupBit, value := chunk[0], chunk[1:]
 		values = append(values, value...)
 		i += 1
 		if isLastGroupBit == '0' {
@@ -190,11 +255,11 @@ func (p LiteralPacket) Evaluate() uint {
 	if err != nil {
 		panic(err)
 	}
-	return uint(result)
+	return int(result)
 }
 
-func (packet Packet) GetVersionSum() (sum uint) {
-	reader := packet.ParsePacketReader()
+func (p Packet) GetVersionSum() (sum uint) {
+	reader := p.ParsePacketReader()
 	subPackets := []Packet{}
 	for range reader.Read(&subPackets) {
 	}
@@ -202,6 +267,88 @@ func (packet Packet) GetVersionSum() (sum uint) {
 		sum += subPacket.Version
 	}
 	return sum
+}
+
+func (p *OperatorPacket) PopulatePacketTree() {
+	switch p.LengthTypeID {
+	case 0:
+		body := p.Packet.Body[0:p.LengthOfSubPackets]
+		var leftOffset, rightOffset int
+		for {
+			reader := ParsePacket(body[leftOffset:]).ParsePacketReader()
+			child, ok := reader.(OperatorPacket)
+			// fmt.Printf("length: %v, %p %p\n", reader, &reader, &child)
+			if ok {
+				child.PopulatePacketTree()
+				p.Children = append(p.Children, child)
+			} else {
+				p.Children = append(p.Children, reader)
+			}
+			rightOffset += reader.GetBodyLength() + reader.GetHeaderOffset()
+			if rightOffset >= len(body) {
+				break
+			}
+			leftOffset = rightOffset
+		}
+	case 1:
+		body := p.Packet.Body
+		var leftOffset, rightOffset int
+		for range p.NumberOfSubPackets {
+			reader := ParsePacket(body[leftOffset:]).ParsePacketReader()
+			child, ok := reader.(OperatorPacket)
+			// fmt.Println("number:", reader)
+			if ok {
+				child.PopulatePacketTree()
+				p.Children = append(p.Children, child)
+			} else {
+				p.Children = append(p.Children, reader)
+			}
+			rightOffset += reader.GetBodyLength() + reader.GetHeaderOffset()
+			leftOffset = rightOffset
+		}
+	default:
+		panic("length type not implemented")
+	}
+}
+
+// {Packet:{Version:0 TypeID:1 Body:1011000011001110001001} LengthTypeID:0 LengthOfSubPackets:22 NumberOfSubPackets:0 Children:[]}
+// {Packet:{Version:5 TypeID:4 Body:0011001110001001}}
+// literalValue: 6
+// {Packet:{Version:3 TypeID:4 Body:01001}}
+// literalValue: 9
+func (p Packet) EvalPacketExpression() int {
+	reader := p.ParsePacketReader()
+
+	// var evalByTraverse func(OperatorPacket) int
+	// evalByTraverse = func(parent OperatorPacket) (result int) {
+	// 	for _, child := range parent.Children {
+	// 		// fmt.Printf("%+v\n", child)
+	// 		switch p := child.(type) {
+	// 		case OperatorPacket:
+	// 			result += evalByTraverse(p)
+	// 		case LiteralPacket:
+	// 			// fmt.Println(p.EvalLiteralValue())
+	// 			result += p.EvalValue()
+	// 		default:
+	// 			panic("packet type not implemented")
+	// 		}
+	// 	}
+
+	// 	return result
+	// }
+
+	switch p := reader.(type) {
+	case OperatorPacket:
+		p.PopulatePacketTree()
+		return p.EvalValue()
+		// j, _ := json.Marshal(p)
+		// os.WriteFile("sample.json", j, 0644)
+		// return evalByTraverse(p)
+	case LiteralPacket:
+		return int(p.EvalValue())
+	default:
+		panic("packet type not implemented")
+	}
 }
 
 func parseInput(hex string) Packet {
@@ -223,5 +370,7 @@ func SolvePartOne(input string) (result int) {
 }
 
 func SolvePartTwo(input string) (result int) {
+	packet := parseInput(input)
+	result = packet.EvalPacketExpression()
 	return
 }
