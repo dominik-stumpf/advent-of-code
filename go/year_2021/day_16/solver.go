@@ -15,7 +15,7 @@ var Input string
 type Packet struct {
 	Version uint
 	TypeID  TypeID
-	Body    string
+	Body    []byte
 }
 
 type LiteralPacket struct {
@@ -46,12 +46,12 @@ const (
 const PacketHeaderLength = 6
 const LiteralPacketChunkSize = 5
 
-func ParsePacket(binary string) (packet Packet) {
-	version, err := strconv.ParseUint(binary[:3], 2, 0)
+func ParsePacket(binary []byte) (packet Packet) {
+	version, err := strconv.ParseUint(string(binary[:3]), 2, 0)
 	if err != nil {
 		panic(err)
 	}
-	typeID, err := strconv.ParseUint(binary[3:PacketHeaderLength], 2, 0)
+	typeID, err := strconv.ParseUint(string(binary[3:PacketHeaderLength]), 2, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -68,14 +68,14 @@ func ParseOperatorPacket(packet Packet) OperatorPacket {
 	operatorPacket.LengthTypeID = uint(lengthTypeId)
 	switch lengthTypeId {
 	case 0:
-		lengthOfSubpackets, err := strconv.ParseUint(packet.Body[1:16], 2, 0)
+		lengthOfSubpackets, err := strconv.ParseUint(string(packet.Body[1:16]), 2, 0)
 		if err != nil {
 			panic(err)
 		}
 		operatorPacket.Packet.Body = packet.Body[16:]
 		operatorPacket.LengthOfSubPackets = uint(lengthOfSubpackets)
 	case 1:
-		numberOfSubpackets, err := strconv.ParseUint(packet.Body[1:12], 2, 0)
+		numberOfSubpackets, err := strconv.ParseUint(string(packet.Body[1:12]), 2, 0)
 		if err != nil {
 			panic(err)
 		}
@@ -134,7 +134,7 @@ func (p OperatorPacket) GetBodyLength() int {
 
 func (p LiteralPacket) GetBodyLength() int {
 	var length int
-	for chunk := range slices.Chunk([]rune(p.Packet.Body), LiteralPacketChunkSize) {
+	for chunk := range slices.Chunk([]byte(p.Packet.Body), LiteralPacketChunkSize) {
 		isLastGroupBit := chunk[0]
 		length += 1
 		if isLastGroupBit == '0' {
@@ -181,14 +181,23 @@ func (p OperatorPacket) EvalValue() (result int) {
 			return cmp.Compare(a.EvalValue(), b.EvalValue())
 		}).EvalValue()
 	case TypeGreaterThan:
+		if len(p.Children) > 2 {
+			panic("children count exceeded the expected amount")
+		}
 		if p.Children[0].EvalValue() > p.Children[1].EvalValue() {
 			result = 1
 		}
 	case TypeLessThan:
+		if len(p.Children) > 2 {
+			panic("children count exceeded the expected amount")
+		}
 		if p.Children[0].EvalValue() < p.Children[1].EvalValue() {
 			result = 1
 		}
 	case TypeEqualTo:
+		if len(p.Children) > 2 {
+			panic("children count exceeded the expected amount")
+		}
 		if p.Children[0].EvalValue() == p.Children[1].EvalValue() {
 			result = 1
 		}
@@ -199,9 +208,9 @@ func (p OperatorPacket) EvalValue() (result int) {
 }
 
 func (p LiteralPacket) EvalValue() int {
-	var values []rune
+	var values []byte
 	var i int
-	for chunk := range slices.Chunk([]rune(p.Packet.Body), LiteralPacketChunkSize) {
+	for chunk := range slices.Chunk(p.Packet.Body, LiteralPacketChunkSize) {
 		isLastGroupBit, value := chunk[0], chunk[1:]
 		values = append(values, value...)
 		i += 1
@@ -216,7 +225,7 @@ func (p LiteralPacket) EvalValue() int {
 	return int(result)
 }
 
-func (p Packet) GetVersionSum() (sum uint) {
+func (p Packet) GetVersionSum() (sum int) {
 	packeter := p.ParsePacketer()
 	switch p := packeter.(type) {
 	case OperatorPacket:
@@ -225,13 +234,13 @@ func (p Packet) GetVersionSum() (sum uint) {
 		for len(queue) > 0 {
 			first := queue[0]
 			queue = queue[1:]
-			sum += first.GetPacket().Version
+			sum += int(first.GetPacket().Version)
 			if p, ok := first.(OperatorPacket); ok {
 				queue = append(queue, p.Children...)
 			}
 		}
 	case LiteralPacket:
-		sum = p.Packet.Version
+		sum = int(p.Packet.Version)
 	default:
 		panic("packet type not implemented")
 	}
@@ -286,27 +295,27 @@ func (p Packet) EvalPacketExpression() int {
 		p.PopulatePacketTree()
 		return p.EvalValue()
 	case LiteralPacket:
-		return int(p.EvalValue())
+		return p.EvalValue()
 	default:
 		panic("packet type not implemented")
 	}
 }
 
 func parseInput(hex string) Packet {
-	var binary string
+	var binary []byte
 	for _, char := range strings.TrimRight(hex, "0") {
 		elem, err := strconv.ParseUint(string(char), 16, 0)
 		if err != nil {
 			panic(err)
 		}
-		binary += fmt.Sprintf("%0.4b", elem)
+		binary = fmt.Appendf(binary, "%0.4b", elem)
 	}
 	return ParsePacket(binary)
 }
 
 func SolvePartOne(input string) (result int) {
 	packet := parseInput(input)
-	result = int(packet.GetVersionSum())
+	result = packet.GetVersionSum()
 	return
 }
 
