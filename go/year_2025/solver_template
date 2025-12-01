@@ -1,0 +1,16 @@
+package day_xx
+
+import (
+	_ "embed"
+)
+
+//go:embed input
+var Input string
+
+func SolvePartOne(input string) (result int) {
+	return
+}
+
+func SolvePartTwo(input string) (result int) {
+	return
+}
