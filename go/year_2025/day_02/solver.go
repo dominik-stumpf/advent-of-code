@@ -3,6 +3,8 @@ package day_02
 import (
 	_ "embed"
 	"fmt"
+	"iter"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -25,33 +27,28 @@ func (r IDRange) GetIdsWithDuplicateDigits() (result []int) {
 	return
 }
 
-// func GetOverlappedSlidingWindow(field string, windowSize int) []string {
-// 	var result []string
-// 	for i := 0; i+windowSize <= len(field); i += 1 {
-// 		result = append(result, field[i:i+windowSize])
-// 	}
-// 	return result
-// }
-
-func GetSlidingWindow(field string, windowSize int) []string {
-	var result []string
-	for i := 0; i+windowSize <= len(field); i += windowSize {
-		result = append(result, field[i:i+windowSize])
+func GetSlidingWindow(field []byte, windowSize int) iter.Seq[[]byte] {
+	return func(yield func([]byte) bool) {
+		for i := 0; i+windowSize <= len(field); i += windowSize {
+			if !yield(field[i : i+windowSize]) {
+				return
+			}
+		}
 	}
-	return result
 }
 
 func (r IDRange) GetIdsWithRepeatedDigits() (result []int) {
 	for i := r.Left; i <= r.Right; i++ {
-		id := strconv.Itoa(i)
+		id := []byte(strconv.Itoa(i))
+
 	nextWindow:
 		for windowSize := len(id); windowSize > 0; windowSize-- {
 			if len(id)%windowSize != 0 || len(id)/windowSize <= 1 {
 				continue
 			}
-			var prev string
-			for _, window := range GetSlidingWindow(id, windowSize) {
-				if prev != "" && window != prev {
+			var prev []byte
+			for window := range GetSlidingWindow(id, windowSize) {
+				if len(prev) != 0 && !slices.Equal(window, prev) {
 					continue nextWindow
 				}
 				prev = window
