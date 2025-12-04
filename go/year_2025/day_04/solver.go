@@ -20,15 +20,10 @@ func checkIsInbound(predicate int, length int) bool {
 
 func (grid Grid[T]) CheckIsInbound(predicate Point) bool {
 	return checkIsInbound(predicate.X, len(grid[0])) && checkIsInbound(predicate.Y, len(grid))
-	// if !checkIsInbound(predicate.X, len(grid[0])) || !checkIsInbound(predicate.Y, len(grid)) {
-	// 	return false
-	// }
-	// return true
 }
 
 func (grid Grid[T]) GetNeighborIndices(start Point) (indices []Point) {
 	if !grid.CheckIsInbound(start) {
-		// if !checkIsInbound(start.X, len(grid[0])) || !checkIsInbound(start.Y, len(grid)) {
 		panic("start point is out of bounds")
 	}
 	for i := range 2 {
@@ -48,7 +43,6 @@ func (grid Grid[T]) GetNeighborIndices(start Point) (indices []Point) {
 
 func (grid Grid[T]) GetNeighborIndicesWithCorners(start Point) (indices []Point) {
 	if !grid.CheckIsInbound(start) {
-		// if !checkIsInbound(start.X, len(grid[0])) || !checkIsInbound(start.Y, len(grid)) {
 		panic("start point is out of bounds")
 	}
 	for yOffset := range 3 {
@@ -67,7 +61,9 @@ func (grid Grid[T]) GetNeighborIndicesWithCorners(start Point) (indices []Point)
 	return
 }
 
-func (grid Grid[rune]) CheckCanBeForklifted(rollPoint Point) bool {
+// ------
+
+func (grid Grid[rune]) CheckIsForkliftable(rollPoint Point) bool {
 	var rollCount int
 	for _, point := range grid.GetNeighborIndicesWithCorners(rollPoint) {
 		cell := any(grid[point.Y][point.X]).(string)
@@ -93,7 +89,7 @@ func SolvePartOne(input string) (result int) {
 
 	for y, row := range grid {
 		for x := range row {
-			if grid[y][x] == "@" && grid.CheckCanBeForklifted(Point{x, y}) {
+			if grid[y][x] == "@" && grid.CheckIsForkliftable(Point{x, y}) {
 				result += 1
 			}
 		}
@@ -104,15 +100,15 @@ func SolvePartOne(input string) (result int) {
 func SolvePartTwo(input string) (result int) {
 	grid := ParseInput(&input)
 
-	didForklift := true
-	for didForklift {
-		didForklift = false
+	couldForkLift := true
+	for couldForkLift {
+		couldForkLift = false
 		forkLiftablePositions := []Point{}
 		for y, row := range grid {
 			for x := range row {
-				if grid[y][x] == "@" && grid.CheckCanBeForklifted(Point{x, y}) {
+				if grid[y][x] == "@" && grid.CheckIsForkliftable(Point{x, y}) {
 					forkLiftablePositions = append(forkLiftablePositions, Point{x, y})
-					didForklift = true
+					couldForkLift = true
 					result += 1
 				}
 			}
