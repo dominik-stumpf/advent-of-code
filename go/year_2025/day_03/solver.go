@@ -18,10 +18,10 @@ func ParseInput(input *string) (result []Bank) {
 	return
 }
 
-func (b Bank) FindLargestJoltageByLength(length int) int {
+func (bank Bank) FindLargestJoltageByLength(length int) int {
 	digits := make([]byte, length)
-	for i, battery := range b {
-		for j := min(max(length-(len(b)-i-1)-1, 0), length-1); j < length; j++ {
+	for i, battery := range bank {
+		for j := min(max(length-(len(bank)-i-1)-1, 0), length-1); j < length; j++ {
 			if battery > digits[j] {
 				digits[j] = battery
 				for l := j + 1; l < length; l++ {
