@@ -63,11 +63,12 @@ func (grid Grid[T]) GetNeighborIndicesWithCorners(start Point) (indices []Point)
 
 // external code above
 
-func (grid Grid[rune]) CheckIsForkliftable(rollPoint Point) bool {
+type Diagram struct{ Grid[byte] }
+
+func (diagram Diagram) CheckIsForkliftable(rollPoint Point) bool {
 	var rollCount int
-	for _, point := range grid.GetNeighborIndicesWithCorners(rollPoint) {
-		cell := any(grid[point.Y][point.X]).(byte)
-		if cell == '@' {
+	for _, point := range diagram.GetNeighborIndicesWithCorners(rollPoint) {
+		if diagram.Grid[point.Y][point.X] == '@' {
 			rollCount += 1
 		}
 		if rollCount >= 4 {
@@ -77,24 +78,23 @@ func (grid Grid[rune]) CheckIsForkliftable(rollPoint Point) bool {
 	return true
 }
 
-func ParseInput(input *string) (grid Grid[byte]) {
+func ParseInput(input *string) (diagram Diagram) {
 	for line := range strings.SplitSeq(*input, "\n") {
 		cells := strings.Split(line, "")
 		row := make([]byte, len(line))
 		for _, cell := range cells {
 			row = append(row, byte(cell[0]))
 		}
-		grid = append(grid, row)
+		diagram.Grid = append(diagram.Grid, row)
 	}
 	return
 }
 
 func SolvePartOne(input string) (result int) {
-	grid := ParseInput(&input)
-
-	for y, row := range grid {
+	diagram := ParseInput(&input)
+	for y, row := range diagram.Grid {
 		for x := range row {
-			if grid[y][x] == '@' && grid.CheckIsForkliftable(Point{x, y}) {
+			if diagram.Grid[y][x] == '@' && diagram.CheckIsForkliftable(Point{x, y}) {
 				result += 1
 			}
 		}
@@ -103,15 +103,14 @@ func SolvePartOne(input string) (result int) {
 }
 
 func SolvePartTwo(input string) (result int) {
-	grid := ParseInput(&input)
-
+	diagram := ParseInput(&input)
 	couldForkLift := true
 	for couldForkLift {
 		couldForkLift = false
 		forkLiftablePositions := []Point{}
-		for y, row := range grid {
+		for y, row := range diagram.Grid {
 			for x := range row {
-				if grid[y][x] == '@' && grid.CheckIsForkliftable(Point{x, y}) {
+				if diagram.Grid[y][x] == '@' && diagram.CheckIsForkliftable(Point{x, y}) {
 					forkLiftablePositions = append(forkLiftablePositions, Point{x, y})
 					couldForkLift = true
 					result += 1
@@ -119,9 +118,8 @@ func SolvePartTwo(input string) (result int) {
 			}
 		}
 		for _, pos := range forkLiftablePositions {
-			grid[pos.Y][pos.X] = 'x'
+			diagram.Grid[pos.Y][pos.X] = 'x'
 		}
 	}
-
 	return
 }
