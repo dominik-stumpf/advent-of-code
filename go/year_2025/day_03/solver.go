@@ -18,21 +18,20 @@ func ParseInput(input *string) (result []Bank) {
 	return
 }
 
-func (b Bank) FindLargestJoltage() int {
-	max := make([]byte, 2)
+func (b Bank) FindLargestJoltageByLength(length int) int {
+	digits := make([]byte, length)
 	for i, battery := range b {
-		if battery > max[0] {
-			if i != len(b)-1 {
-				max[0] = battery
-				max[1] = 0
-			} else {
-				max[1] = battery
+		for j := min(max(length-(len(b)-i-1)-1, 0), length-1); j < length; j++ {
+			if battery > digits[j] {
+				digits[j] = battery
+				for l := j + 1; l < length; l++ {
+					digits[l] = 0
+				}
+				break
 			}
-		} else if battery > max[1] {
-			max[1] = battery
 		}
 	}
-	largestJoltage, err := strconv.Atoi(string(max))
+	largestJoltage, err := strconv.Atoi(string(digits))
 	if err != nil {
 		panic(err)
 	}
@@ -42,11 +41,15 @@ func (b Bank) FindLargestJoltage() int {
 func SolvePartOne(input string) (result int) {
 	banks := ParseInput(&input)
 	for _, bank := range banks {
-		result += bank.FindLargestJoltage()
+		result += bank.FindLargestJoltageByLength(2)
 	}
 	return
 }
 
 func SolvePartTwo(input string) (result int) {
+	banks := ParseInput(&input)
+	for _, bank := range banks {
+		result += bank.FindLargestJoltageByLength(12)
+	}
 	return
 }
