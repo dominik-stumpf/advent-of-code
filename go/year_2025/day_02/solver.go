@@ -1,9 +1,9 @@
 package day_02
 
 import (
+	"aoc/year_2021/standalone/slicetl"
 	_ "embed"
 	"fmt"
-	"iter"
 	"slices"
 	"strconv"
 	"strings"
@@ -27,16 +27,6 @@ func (r IDRange) GetIdsWithDuplicateDigits() (result []int) {
 	return
 }
 
-func GetSlidingWindow(field []byte, windowSize int) iter.Seq[[]byte] {
-	return func(yield func([]byte) bool) {
-		for i := 0; i+windowSize <= len(field); i += windowSize {
-			if !yield(field[i : i+windowSize]) {
-				return
-			}
-		}
-	}
-}
-
 func (r IDRange) GetIdsWithRepeatedDigits() (result []int) {
 	for i := r.Left; i <= r.Right; i++ {
 		id := []byte(strconv.Itoa(i))
@@ -47,7 +37,7 @@ func (r IDRange) GetIdsWithRepeatedDigits() (result []int) {
 				continue
 			}
 			var prev []byte
-			for window := range GetSlidingWindow(id, windowSize) {
+			for window := range slicetl.GetSlidingWindow(id, windowSize) {
 				if len(prev) != 0 && !slices.Equal(window, prev) {
 					continue nextWindow
 				}
